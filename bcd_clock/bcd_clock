@@ -1,0 +1,141 @@
+#!/usr/bin/perl
+#
+# bcd_clock -- BCD clock simulator
+#
+use strict;
+use warnings;
+
+use local::lib;
+use Const::Fast;
+use English qw( -no_match_vars );
+use Term::ReadKey;
+use Term::ANSIScreen qw/:color :constants :cursor :screen/;
+use integer;
+use version; our $VERSION = qv('v2017.08.20');
+
+#
+# screen row/column mapping
+#
+const my $DIGIT_ROW  => 18;                    # digit row
+const my $LED_COL0   => 20;                    # LED column zero
+const my $LED_COL_SP => 4;                     # LED column spacing
+const my $LED_ROW0   => 16;                    # LED row zero
+const my $LED_ROW_SP => -2;                    # LED row spacing
+const my $MAX_COL    => 5;                     # six digits, indexed 0..5
+const my @MAX_ROW    => ( 1, 3, 2, 3, 2, 3 )
+    ;    # LEDs in each column, indexed 0..$MAX_ROWS[$i]
+
+const my $RAW_READMODE => 4;
+const my $UNBLOCKED    => -1;
+
+#
+# set up blank screen
+#
+ReadMode $RAW_READMODE;
+local $OUTPUT_AUTOFLUSH = 1;
+$Term::ANSIScreen::AUTORESET = 1;
+cls;
+
+#
+# put two separating colons in digit row
+#
+locate( $DIGIT_ROW, $LED_COL0 + 3 * $LED_COL_SP / 2 );
+print q{:};
+locate( $DIGIT_ROW, $LED_COL0 + 7 * $LED_COL_SP / 2 );
+print q{:};
+
+#
+# print blank display: zero digit & off LEDs in each column
+#
+my @led;      # three-d array of boolean on/off for each LED
+my @digit;    # two-d array of time digits
+my $curr = 0;
+for my $i ( 0 .. $MAX_COL ) {
+    locate( $DIGIT_ROW, $LED_COL0 + $i * $LED_COL_SP );
+    $digit[$curr][$i] = 0;
+    print '0';
+    for my $j ( 0 .. $MAX_ROW[$i] ) {
+        $led[$curr][$i][$j] = 0;
+        locate(
+            $LED_ROW0 + $j * $LED_ROW_SP,
+            $LED_COL0 + $i * $LED_COL_SP - 1
+        );
+        print '( )';
+    }
+}
+
+#
+# loop until Q pressed...
+#
+while (1) {
+
+    #
+    # switch current/previous frames
+    #
+    $curr = 1 - $curr;
+    my $prev = 1 - $curr;
+
+    #
+    # get current time...
+    #
+    my ( $sec, $min, $hr ) = localtime;
+
+    #
+    # figure out the time decimal digits (left to right)
+    #
+    $digit[$curr]
+        = [
+        ( $hr / 10, $hr % 10, $min / 10, $min % 10, $sec / 10, $sec % 10 )
+        ];
+
+    #
+    # iterate over digits, left to right...
+    #
+    for my $i ( 0 .. $MAX_COL ) {
+        #
+        # if digit is unchanged, just update the unchanged current LED
+        # array
+        #
+        if ( $digit[$curr][$i] == $digit[$prev][$i] ) {
+            for my $j ( 0 .. $MAX_ROW[$i] ) {
+                $led[$curr][$i][$j] = $led[$prev][$i][$j];
+            }
+            next;
+        }
+        #
+        # otherwise print the new digit
+        #
+        locate( $DIGIT_ROW, $LED_COL0 + $i * $LED_COL_SP );
+        print $digit[$curr][$i];
+        #
+        # and recalculate/display the current LED array
+        #
+        $led[$curr][$i]
+            = [ reverse split //, sprintf '%04b', $digit[$curr][$i] ];
+
+        for my $j ( 0 .. $MAX_ROW[$i] ) {
+            #
+            # toggle LED display if changed
+            #
+            if ( $led[$curr][$i][$j] != $led[$prev][$i][$j] ) {
+                locate(
+                    $LED_ROW0 + $j * $LED_ROW_SP,
+                    $LED_COL0 + $i * $LED_COL_SP
+                );
+
+                # print $led[$curr][$i][$j] ? BLACK ON_RED q{ } : q{ };
+                print $led[$curr][$i][$j] ? RED q{⬤} : q{ };
+            }
+        }
+    }
+    locate( 1, 1 );    # cursor back to home
+
+    if ( defined( my $key = ReadKey($UNBLOCKED) ) ) {    # keypress!
+        last if ( $key eq 'Q' || $key eq 'q' );
+    }
+    sleep 1;
+}
+locate( 1, 1 );
+cls;
+ReadMode 0;
+exit 0;
