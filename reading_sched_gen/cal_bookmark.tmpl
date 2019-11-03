@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+
+<head>
+<title><TMPL_VAR NAME="title"></title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="/css/reading_sched.css" type="text/css">
+</style>
+</head>
+
+<body>
+<table>
+<caption><TMPL_VAR NAME="title"></caption>
+<tr>
+    <th>Sun</th>
+    <th>Mon</th>
+    <th>Tue</th>
+    <th>Wed</th>
+    <th>Thu</th>
+    <th>Fri</th>
+    <th>Sat</th>
+</tr>
+
+<TMPL_LOOP NAME="weeks">
+    <tr>
+    <TMPL_LOOP NAME="days">
+	<td>
+	<div style="font-size:x-small;"><TMPL_VAR NAME="date"></div>
+	<div style="font-weight:bold;font-size:large;text-align:center;border-style:none;"><TMPL_VAR NAME="goal"></div>
+	</td>
+    </TMPL_LOOP>
+    </tr>
+</TMPL_LOOP>
+
+</table>
+</body>
+</html>
