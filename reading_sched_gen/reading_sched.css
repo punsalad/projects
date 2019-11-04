@@ -1,0 +1,45 @@
+/* reading schedule style sheet */
+
+body {
+    font-family:        Verdana, Arial, Helvetica, sans-serif;
+    font-size:          medium;
+}
+
+caption {
+    color:              red;
+    text-align:left;
+    font-size:          large;
+    font-weight:          bold;
+    font-style:         oblique;
+    padding: 5px;
+}
+
+table {
+    border-width: thin thin thin thin;
+    border-spacing: 0px;
+    border-style: dashed;
+    border-color: black;
+    border-collapse: collapse;
+    outline-style: dashed;
+    outline-width: 1px;
+    outline-offset: 20px;
+    margin: 40px 40px 40px 40px;
+}
+th {
+    background: #e0e0ff;
+    width:50px;
+    border-width: thin thin thin thin;
+    padding: 5px 5px 5px 5px;
+    border-style: solid solid solid solid;
+    border-color: black black black black;
+    font-size: small;
+}
+td {
+    vertical-align:top;
+    width:50px;
+    border-width: thin thin thin thin;
+    padding: 5px 5px 5px 5px;
+    border-style: solid solid solid solid;
+    border-color: black black black black;
+    background-color: white;
+}
