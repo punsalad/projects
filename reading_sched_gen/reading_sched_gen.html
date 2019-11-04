@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+<head>
+<title>Reading Schedule Generator</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<style>
+    fieldset {
+	height: 330px;
+	width: 400px;
+    }
+    legend {
+        font-size:xx-large;
+	color:red;
+    }
+    label {
+        display:block;
+	font-weight:bold;
+	font-size:small;
+    }
+    input {
+	display:block;
+    }
+    input[type=text] {
+	width:300px;
+    }
+    input[type=number] {
+	width:100px;
+    }
+
+    .required {
+	color:red;
+    }
+    .formline {
+        display:table;
+	border-spacing: 10px;
+    }
+</style>
+
+<script>
+function checkForm(form) {
+    if (form.ndays.value == "" && form.enddate.value == "") {
+        alert("Either specify # of days or End date");
+	return false;
+    }
+    if (form.enddate.value !== "" && form.enddate.value <= form.startdate.value) {
+        alert("End date should be after Start date");
+	return false;
+    }
+    if (form.enddate.value == "" && form.ndays.value <= 0) {
+        alert("Number of days should be greater than zero.");
+	return false;
+    }
+    if (Number(form.startpage.value) >= Number(form.endpage.value)) {
+	alert("End page number must be greater than start page number");
+	return false;
+    }
+    return true;
+}
+</script>
+
+</head>
+
+<body>
+
+<p>
+<form method="post" onsubmit="return checkForm(this);" action="/cgi-bin/reading_sched.cgi">
+
+<fieldset>
+<legend>Reading Schedule Generator</legend>
+
+
+<div class="formline">
+    <div style="display:table-cell;">
+	<label for="title">Title<span class="required"> *</span></label>
+	<input type="text" id="title" name="title" required>
+    </div>
+</div>
+
+<div class="formline">
+    <div style="display:table-cell;">
+	<label for="startpage">Start Page<span class="required"> *</span></label>
+	<input type="number" id="startpage" name="startpage" value="1" required>
+    </div>
+
+    <div style="display:table-cell;">
+	<label for="endpage">End Page<span class="required"> *</span></label>
+	<input type="number" id="endpage" name="endpage" required>
+    </div>
+</div>
+
+
+<div class="formline">
+    <div style="display:table-cell">
+	<label for="startdate">Start date<span class="required"> *</span></label>
+	<input type="date" id="startdate" name="startdate" required>
+    </div>
+</div>
+
+<script>
+document.getElementById("startdate").valueAsDate = new Date();
+</script>
+
+<div class="formline">
+    <div style="display:table-cell">
+	<label for="ndays">Number of days</label>
+	<input type="number" id="ndays" name="ndays">
+    </div>
+	    
+    <div style="display:table-cell">
+	<b>- or -</b>
+    </div>
+	    
+    <div style="display:table-cell">
+	<label for="enddate">End date</label>
+	<input type="date" id="enddate" name="enddate">
+    </div>
+</div>
+
+<div class="formline">
+    <input type="submit" value="Submit">
+</div>
+</fieldset>
+</form>
+
+</body>
+</html>
