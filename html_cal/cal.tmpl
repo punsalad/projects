@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <title><TMPL_VAR NAME="YEAR"></title>
+  <meta http-equiv="Content-Type" content= "text/html; charset=utf-8">
+</head>
+
+<body>
+<h1 style="text-align:center;"><TMPL_VAR NAME="YEAR"></h1>
+
+<p>
+<table style="border: 1px solid black; margin: 0px auto;">
+<TMPL_LOOP NAME="CAL_ROW_LOOP">
+    <tr style="vertical-align:top;">
+    <TMPL_LOOP NAME="CAL_COL_LOOP">
+	<td style="border: 1px solid black; text-align:center; padding:5px;">
+	<TMPL_VAR NAME="MONTH_NAME">
+	<p>
+	<table>
+	<TMPL_LOOP NAME="WEEKS">
+	    <tr>
+	    <TMPL_LOOP NAME="DAYS">
+		<td style="padding-left:5px;padding-right:5px;">
+		<span style="font-size:small"><TMPL_VAR NAME="dayno"></span>
+		</td>
+	    </TMPL_LOOP>
+	    </tr>
+	</TMPL_LOOP>
+	</table>
+	</td>
+    </TMPL_LOOP>
+    </tr>
+</TMPL_LOOP>
+</table>
+       
+</body>
+</html>

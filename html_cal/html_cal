@@ -1,0 +1,64 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Const::Fast;
+use Time::Piece;
+use English qw( -no_match_vars );
+use HTML::Template;
+use version; our $VERSION = qv('v2017.12.24');
+
+const my $TEMPLATE_FILE => $ENV{'HOME'} . '/Templates/cal.tmpl';
+const my $CAL_ROWS      => 4;
+const my $CAL_COLS      => 3;
+#
+# year is either argument or current year
+#
+my $yyyy = ( shift || localtime->year );
+
+my $template = HTML::Template->new( filename => $TEMPLATE_FILE );
+$template->param( YEAR => $yyyy );
+
+my $month    = 1;
+my @row_loop = ();
+for my $row ( 1 .. $CAL_ROWS ) {
+    my @col_loop = ();
+    for my $col ( 1 .. $CAL_COLS ) {
+        push @col_loop, monthly_cal( $month, $yyyy );
+        $month++;
+    }
+    push @row_loop, { 'CAL_COL_LOOP' => \@col_loop };
+}
+$template->param( 'CAL_ROW_LOOP' => \@row_loop );
+print $template->output;
+
+sub monthly_cal {
+    my ( $month_num, $year ) = @_;
+
+    const my $MONTH_ROWS   => 6;
+    const my $DAYS_IN_WEEK => 7;
+
+    my $fdom          = Time::Piece->strptime( "$year-$month-1", '%Y-%m-%d' );
+    my $days_in_month = $fdom->month_last_day;
+    my $dayno         = 1 - $fdom->day_of_week;
+    my @wk_loop       = ();
+    for my $w ( 1 .. $MONTH_ROWS ) {
+        my $days = [];
+        for my $d ( 1 .. $DAYS_IN_WEEK ) {
+            push @{$days},
+                {
+                'dayno' => ( $dayno >= 1 && $dayno <= $days_in_month )
+                ? $dayno
+                : '&nbsp;'
+                };
+            $dayno++;
+        }
+        my $week = { 'days' => $days };
+        push @wk_loop, $week;
+    }
+    return {
+        'MONTH_NAME' => $fdom->fullmonth,
+        'WEEKS'      => \@wk_loop,
+    };
+}
