@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+#
+# get Bing pics not previously downloaded
+#
+
+use strict;
+use warnings;
+use Const::Fast;
+use JSON::PP;
+use LWP::Simple;
+use URI;
+use version; our $VERSION = qv('v2019.03.27');
+
+const my $NPICS     => 16;
+const my $BING      => 'http://bing.com';
+const my $BING_JSON => $BING
+    . '/HPImageArchive.aspx?format=js&idx=0&n='
+    . $NPICS
+    . '&mkt=en-US';
+const my $PICDIR          => '/media/sf_Pictures';
+
+my $bing_json = get $BING_JSON;
+defined $bing_json or die "Getting $BING_JSON failed, sorry.\n";
+my $img_ref = decode_json($bing_json)->{images};
+
+my $result;
+for my $img ( @{$img_ref} ) {
+    my $bing_img_url = $BING . $img->{'url'};
+    my %q            = URI->new($bing_img_url)->query_form;
+    ( my $pic_filename = $q{'id'} ) =~ s/^OHR[.]//;
+    if ( !-e "$PICDIR/$pic_filename" ) {
+        print "Downloading: $pic_filename\n";
+        ( $result = getstore( $bing_img_url, "$PICDIR/$pic_filename" ) )
+            || die "Getstore of $bing_img_url failed: $result\n";
+    }
+}

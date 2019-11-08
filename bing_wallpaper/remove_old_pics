@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+#
+# remove oldest pictures (jpg) from "Pictures" directory if there are
+# more than a certain number of them.
+#
+
+use strict;
+use warnings;
+
+use English qw( -no_match_vars );
+use Const::Fast;
+use File::stat;
+use version; our $VERSION = qv('v2017.11.14');
+
+const my $PICDIR  => '/media/sf_Pictures';
+const my $MAXPICS => 400;
+const my $PICPAT  => qr/ [.] jpg $ /x;
+
+opendir( D, $PICDIR ) || die "Can't open $PICDIR: $ERRNO\n";
+my @pics = map { $_->[1] }
+    sort { $a->[0] <=> $b->[0] }
+    map { [ stat("$PICDIR/$_")->mtime, $_ ] }
+    grep {/$PICPAT/} readdir D;
+closedir D || die "Couldn't close $PICDIR: $ERRNO\n";
+while ( scalar @pics > $MAXPICS ) {
+    my $pic = shift @pics;
+    print "Removing:    $pic\n";
+    unlink "$PICDIR/$pic" or warn "Unlinking $PICDIR/$pic failed: $ERRNO\n";
+}
+print "\n";
