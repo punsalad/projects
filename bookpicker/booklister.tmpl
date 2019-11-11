@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang=en>
+<head>
+<title>TBR Stacks</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+#TBR {
+    font-family: sans-serif;
+    border-collapse: collapse;
+}
+
+#TBR td, #TBR th {
+    border: 1px solid black;
+    padding: 8px;
+}
+
+#TBR th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background: #cce6ff;
+}
+</style>
+</head>
+
+<body>
+
+<table id="TBR">
+<caption>TBR Stacks</caption>
+<tr>
+    <th>Stack<br>(<span style="color:green">Eligible</span> / <span style="color:red">Ineligible</span>)</th>
+    <th>Last Picked</th>
+    <th>MinAge</th>
+    <th>Age</th>
+    <th>Weight</th>
+    <th>Pick Probability</i>
+    <th>Titles<br>(<span style="color:black">Owned</span> / <span style="color:gray">Unowned</span>)</th>
+</tr>
+
+
+<TMPL_LOOP NAME="stacks">
+    <tr>
+	<td><b><span style="color:<TMPL_IF NAME="eligible">green<TMPL_ELSE>red</TMPL_IF>"><TMPL_VAR NAME="name"></span></b></td>
+	<td><TMPL_VAR NAME="lastpicked"></td>
+	<td><TMPL_VAR NAME="minage">d</td>
+	<td><TMPL_VAR NAME="age">d</td>
+	<td><TMPL_VAR NAME="wt"></td>
+	<td><TMPL_VAR NAME="prob"></td>
+
+	<td>
+	    <TMPL_IF NAME="titles">
+	    <ol>
+	    <TMPL_LOOP NAME="titles">
+	    <li> <span style="color:<TMPL_IF NAME="owned">black<TMPL_ELSE>gray</TMPL_IF>"><i><TMPL_VAR NAME="title"></i></span>
+	    </TMPL_LOOP>
+	    </ol>
+	    <TMPL_ELSE>
+	         [empty]
+	    </TMPL_IF>
+	</td>
+    </tr>
+</TMPL_LOOP>
+</table>
+</body>

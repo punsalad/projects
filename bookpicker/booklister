@@ -1,0 +1,83 @@
+#!/usr/bin/perl
+#
+# booklister -- show book stacks
+#
+
+use strict;
+use warnings;
+use English qw( -no_match_vars );
+use Text::CSV;
+use Time::Piece;
+use Time::Seconds;
+use version; our $VERSION = qv('v2018.04.25');
+
+my $now            = localtime;
+my $stackdir       = "$ENV{'HOME'}/var/bookstacks";    # stack directory
+my $stack_csv_file = "$stackdir/stacks.csv";
+
+#
+# read stack data...
+#
+my $stack_csv = Text::CSV->new()
+    or die 'Cannot use CSV: ', Text::CSV->error_diag(), "\n";
+open my $stack_fh, '<', $stack_csv_file
+    or die "Opening $stack_csv_file failed: $ERRNO\n";
+$stack_csv->column_names( $stack_csv->getline($stack_fh) );
+my $stacks = $stack_csv->getline_hr_all($stack_fh);
+close $stack_fh or warn "Closing $stackdir/stacks.csv failed: $ERRNO\n";
+
+#
+# read books in each stack
+#
+my %books_csv_file;
+my %books;
+for my $stack ( @{$stacks} ) {
+    my $stack_id = ${$stack}{id};
+    print "Debug: $stack_id\n";
+    $books_csv_file{$stack_id} = "$stackdir/$stack_id" . '.csv';
+    my $books_csv = Text::CSV->new()
+        or die 'Cannot use CSV: ', Text::CSV->error_diag(), "\n";
+    open my $books_fh, '<', $books_csv_file{$stack_id}
+        or die "Opening $books_csv_file{$stack_id} failed: $ERRNO\n";
+    $books_csv->column_names(qw(title owned));
+    $books{$stack_id} = $books_csv->getline_hr_all($books_fh);
+    close $books_fh
+        or warn "Closing $books_csv_file{$stack_id} failed: $ERRNO\n";
+}
+
+#
+# and list everything...
+#
+my @eligible_stack;
+for my $i ( 0 .. $#{$stacks} ) {
+    my $stack_id = $stacks->[$i]{id};
+    my $lastpicked_lt
+        = Time::Piece->strptime( $stacks->[$i]{lastpicked}, '%Y-%m-%d' );
+    my $stack_age = $now - $lastpicked_lt;
+    my $eligible
+        = (    $stack_age->days >= $stacks->[$i]{minage}
+            && scalar @{ $books{$stack_id} } > 0
+            && $books{$stack_id}->[0]{owned} );
+    ($eligible)
+        && push @eligible_stack, $stacks->[$i]{name};
+    printf "%s Stack; Last Picked: %s; MinAge: %dd; Current Age: %dd %s\n",
+        $stacks->[$i]{name},
+
+        # $stack_id,
+        $stacks->[$i]{lastpicked}, $stacks->[$i]{minage},
+        $stack_age->days,
+        $eligible ? '(Eligible)' : '(Ineligible)';
+
+    if ( scalar @{ $books{$stack_id} } > 0 ) {
+        for my $j ( 0 .. $#{ $books{$stack_id} } ) {
+            printf "    %s (%s)\n", $books{$stack_id}->[$j]{title},
+                $books{$stack_id}->[$j]{owned} ? 'Owned' : 'Unowned';
+        }
+    }
+    else {
+        print "    [Empty]\n";
+    }
+
+}
+printf "Eligible stacks (%d): %s\n", scalar @eligible_stack, join ', ',
+    @eligible_stack;

@@ -1,0 +1,142 @@
+#!/usr/bin/perl
+#
+# booklister -- show book stacks in HTML (open tab in Chrome)
+#
+
+use strict;
+use warnings;
+use Const::Fast;
+use English qw( -no_match_vars );
+use HTML::Template;
+use Text::CSV;
+use Time::Piece;
+use Time::Seconds;
+use version; our $VERSION = qv('v2018.06.25');
+
+const my $CLIENT               => '/usr/bin/chromix-too';
+const my $SERVER               => '/usr/bin/chromix-too-server';
+const my $SLEEP_WAIT_ON_SERVER => 10;
+
+#
+# run server in background if not running...
+#
+my $status = system "pgrep -f $SERVER";
+if ($status) {
+    #
+    # quick and dirty...
+    #
+    $status = system "$SERVER &";
+    #
+    # things don't happen immediately...
+    #
+    sleep $SLEEP_WAIT_ON_SERVER;
+}
+
+my $now            = localtime;
+my $stackdir       = "$ENV{'HOME'}/var/bookstacks";    # stack directory
+my $stack_csv_file = "$stackdir/stacks.csv";
+
+my $template_file = $ENV{'HOME'} . '/Templates/booklister.tmpl';
+my $template      = HTML::Template->new( filename => $template_file, );
+
+#
+# read stack data...
+#
+my $stack_csv = Text::CSV->new()
+    or die 'Cannot use CSV: ', Text::CSV->error_diag(), "\n";
+open my $stack_fh, '<', $stack_csv_file
+    or die "Opening $stack_csv_file failed: $ERRNO\n";
+$stack_csv->column_names( $stack_csv->getline($stack_fh) );
+my $stacks = $stack_csv->getline_hr_all($stack_fh);
+close $stack_fh or warn "Closing $stackdir/stacks.csv failed: $ERRNO\n";
+
+#
+# read books in each stack
+#
+my %books_csv_file;
+my %books;
+for my $stack ( @{$stacks} ) {
+    my $stack_id = ${$stack}{id};
+    $books_csv_file{$stack_id} = "$stackdir/$stack_id" . '.csv';
+    my $books_csv = Text::CSV->new()
+        or die 'Cannot use CSV: ', Text::CSV->error_diag(), "\n";
+    open my $books_fh, '<', $books_csv_file{$stack_id}
+        or die "Opening $books_csv_file{$stack_id} failed: $ERRNO\n";
+    $books_csv->column_names(qw(title owned));
+    $books{$stack_id} = $books_csv->getline_hr_all($books_fh);
+    close $books_fh
+        or warn "Closing $books_csv_file{$stack_id} failed: $ERRNO\n";
+}
+
+#
+# go through stacks once, calculating weights...
+#
+my %wt;
+my %eligible;
+my %stack_age;
+my $tot_wt = 0;
+for my $i ( 0 .. $#{$stacks} ) {
+    my $stack_id = $stacks->[$i]{id};
+    my $lastpicked_lt
+        = Time::Piece->strptime( $stacks->[$i]{lastpicked}, '%Y-%m-%d' );
+    $stack_age{$stack_id} = $now - $lastpicked_lt;
+    $eligible{$stack_id}
+        = (    $stack_age{$stack_id}->days >= $stacks->[$i]{minage}
+            && scalar @{ $books{$stack_id} } > 0
+            && $books{$stack_id}->[0]{owned} );
+    $wt{$stack_id}
+        = $eligible{$stack_id}
+        ? int( $stack_age{$stack_id}->days * scalar @{ $books{$stack_id} } )
+        : 0;
+    $tot_wt += $wt{$stack_id};
+}
+
+#
+# and list everything...
+#
+const my $CENTUM => 100;
+my @stackloop = ();
+
+for my $i ( 0 .. $#{$stacks} ) {
+    my $stack_id  = $stacks->[$i]{id};
+    my @titleloop = ();
+    for my $j ( 0 .. $#{ $books{$stack_id} } ) {
+        push @titleloop,
+            {
+            title => $books{$stack_id}->[$j]{title}
+                . (
+                $books{$stack_id}->[$j]{owned} eq 'K' ? ' (Kindle)' : q{} ),
+            owned => $books{$stack_id}->[$j]{owned},
+            };
+    }
+
+    push @stackloop,
+        {
+        name       => $stacks->[$i]{name},
+        lastpicked => $stacks->[$i]{lastpicked},
+        minage     => $stacks->[$i]{minage},
+        age        => sprintf( '%d', $stack_age{$stack_id}->days ),
+        eligible   => $eligible{$stack_id},
+        wt         => $wt{$stack_id},
+        prob   => sprintf( '%4.1f%%', $CENTUM * $wt{$stack_id} / $tot_wt ),
+        titles => \@titleloop,
+        };
+}
+$template->param( 'stacks' => \@stackloop );
+
+#
+# write to tmp
+#
+open my $F, '>', '/tmp/booklist.html'
+    or die "Failed to open /tmp/booklist.html: $ERRNO\n";
+print {$F} $template->output;
+close $F or warn "Closing /tmp/booklist.html failed: $ERRNO\n";
+
+#
+# and open in Chrome tab
+#
+my $chromix_cmd
+    = sprintf '%s raw chrome.tabs.create \'{"active":true,"url":"%s"}\'',
+    $CLIENT, 'file:///tmp/booklist.html';
+$status = system $chromix_cmd;
+

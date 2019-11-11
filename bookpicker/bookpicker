@@ -1,0 +1,161 @@
+#!/usr/bin/perl
+#
+# bookpicker -- pick a book from the top of one or more "book stacks"
+# 	at random, weighted by the number of books in each stack and the stack's "age". Modified to not pick
+# 	books that (a) I don't own yet; (b) are on the same stack from which a
+# 	previous book was "recently" picked.
+#
+
+use strict;
+use warnings;
+use Const::Fast;
+use English qw( -no_match_vars );
+use Getopt::Std;
+use Text::CSV;
+use Time::Piece;
+use Time::Seconds;
+use version; our $VERSION = qv('v2019.11.11');
+
+my %opts;
+
+getopts( 'v', \%opts ) || die "Usage: $PROGRAM_NAME [-v]\n";
+my $verbose = ( $opts{v} );
+$verbose && print "Verbosity on!\n";
+
+my $now            = localtime;
+my $stackdir       = "$ENV{'HOME'}/var/bookstacks";    # stack directory
+my $stack_csv_file = "$stackdir/stacks.csv";
+
+#
+# read stack data...
+#
+my $stack_csv = Text::CSV->new()
+    or die 'Cannot use CSV: ', Text::CSV->error_diag(), "\n";
+open my $stack_fh, '<', $stack_csv_file
+    or die "Opening $stack_csv_file failed: $ERRNO\n";
+$stack_csv->column_names( $stack_csv->getline($stack_fh) );
+my $stacks = $stack_csv->getline_hr_all($stack_fh);
+close $stack_fh or warn "Closing $stackdir/stacks.csv failed: $ERRNO\n";
+
+#
+# read books in each stack
+#
+my %books_csv_file;
+my %books;
+for my $stack ( @{$stacks} ) {
+    my $stack_id = ${$stack}{id};
+    $books_csv_file{$stack_id} = "$stackdir/$stack_id" . '.csv';
+    my $books_csv = Text::CSV->new()
+        or die 'Cannot use CSV: ', Text::CSV->error_diag(), "\n";
+    open my $books_fh, '<', $books_csv_file{$stack_id}
+        or die "Opening $books_csv_file{$stack_id} failed: $ERRNO\n";
+    $books_csv->column_names(qw(title owned));
+    $books{$stack_id} = $books_csv->getline_hr_all($books_fh);
+    close $books_fh
+        or warn "Closing $books_csv_file{$stack_id} failed: $ERRNO\n";
+}
+
+#
+# filter eligible stacks
+#     - not "recently" picked
+#     - non-empty
+#     - top book on stack is owned
+#
+my @eligible;
+my $tot_weight = 0;
+for my $i ( 0 .. $#{$stacks} ) {
+    my $stack_id = $stacks->[$i]{id};
+    my $lastpicked_lt
+        = $stacks->[$i]{lastpicked}
+        ? Time::Piece->strptime( $stacks->[$i]{lastpicked}, '%Y-%m-%d' )
+        : localtime 0;
+    my $stack_age = $now - $lastpicked_lt;
+    my $nbooks    = scalar @{ $books{$stack_id} };
+
+    if (   $stack_age->days >= $stacks->[$i]{minage}
+        && $nbooks > 0
+        && ${ $books{$stack_id} }[0]->{owned} )
+    {
+        #
+        # very arbitrary weight: (number of books in stack) * (age in days)
+        #
+        my $wt = int( $nbooks * $stack_age->days );
+        push @eligible,
+            {
+            name   => $stacks->[$i]{name},
+            id     => $stack_id,
+            index  => $i,
+            weight => $wt,
+            };
+        $tot_weight += $wt;
+    }
+
+}
+( $tot_weight > 0 ) || die "Eek: NO eligible book in stacks!\n";
+my $r = int rand $tot_weight;
+
+#
+# in verbose mode, output eligible stacks and their probabilities
+#
+const my $CENTUM => 100;
+if ($verbose) {
+    print "Eligible stacks and their probabilities:\n";
+    for my $e (@eligible) {
+        printf "%4.1f%% %s\n", $CENTUM * $e->{weight} / $tot_weight,
+            $e->{name};
+    }
+    printf "r = %d; normalized = %4.1f%%\n", $r, $CENTUM * $r / $tot_weight;
+}
+
+#
+# choose a weighted random eligible stack
+#
+my $p = 0;
+while ( $r >= $eligible[$p]{weight} ) {
+    $r -= $eligible[$p]{weight};
+    $p++;
+}
+my $picked_id   = $eligible[$p]{id};
+my $picked_book = shift @{ $books{$picked_id} };
+printf "Picked book is '%s' from '%s' stack\n", $picked_book->{title},
+    $eligible[$p]{name};
+
+#
+# update lastpicked date for stack...
+#
+$stacks->[ $eligible[$p]{index} ]{lastpicked} = $now->ymd;
+
+#
+# rename old stack as .old
+#
+rename $books_csv_file{$picked_id}, $books_csv_file{$picked_id} . '.old'
+    or die "Renaming $books_csv_file{$picked_id} failed: $ERRNO\n";
+
+#
+# write the remaining book stack
+#
+my $books_csv = Text::CSV->new()
+    or die 'Cannot use CSV: ', Text::CSV->error_diag(), "\n";
+$books_csv->eol("\n");
+$books_csv->column_names(qw(title owned));
+open my $books_fh, '>', $books_csv_file{$picked_id}
+    or die "Opening $books_csv_file{$picked_id} for output failed: $ERRNO\n";
+for my $book ( @{ $books{$picked_id} } ) {
+    $books_csv->print_hr( $books_fh, $book );
+}
+close $books_fh
+    or warn "Closing $books_csv_file{$picked_id} failed: $ERRNO\n";
+
+#
+# write updated stack CSV (saving previous CSV as .old)
+#
+rename $stack_csv_file, "$stack_csv_file.old"
+    or die "Renaming $stack_csv_file failed: $ERRNO\n";
+$stack_csv->eol("\n");
+open $stack_fh, '>', $stack_csv_file
+    or die "Opening $stack_csv_file for output failed: $ERRNO\n";
+$stack_csv->print( $stack_fh, [ $stack_csv->column_names ] );
+for my $stack ( @{$stacks} ) {
+    $stack_csv->print_hr( $stack_fh, $stack );
+}
+close $stack_fh or warn "Closing $stack_csv_file failed: $ERRNO\n";
