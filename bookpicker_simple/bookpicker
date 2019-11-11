@@ -1,0 +1,76 @@
+#!/usr/bin/perl
+#
+# bookpicker -- pick a book from the top of one or more reading lists
+# 	at random, weighted by the length of each list.
+#
+
+use strict;
+use warnings;
+use English qw( -no_match_vars );
+use version; our $VERSION = qv('v2017.10.29');
+
+my $listdir = "$ENV{'HOME'}/var/reading_lists";    # list directory
+
+#
+# find all list files...
+#
+opendir( LD, $listdir ) || die "Can't open $listdir: $ERRNO\n";
+my @lists = sort grep {/[.]list$/x} readdir LD;
+closedir LD or die "Can't close $listdir: $ERRNO\n";
+
+#
+# read in book titles from each list and count
+#
+my @title;      # titles in lists (array of arrays)
+my @listlen;    # length of each book list
+my $totbooks = 0;    # total number of books
+foreach my $list (@lists) {
+    open my $LF, '<', "$listdir/$list"
+        or die "opening $listdir/$list failed: $ERRNO\n";
+    chomp( my @lines = <$LF> );
+    close $LF or die "Closing $listdir/$list failed: $ERRNO\n";
+    push @title, [@lines];
+    push @listlen, scalar @lines;
+    $totbooks += scalar @lines;
+}
+
+print 'Lists: ', scalar @lists, " Books: $totbooks\n";
+for my $i ( 0 .. $#lists ) {
+    print "$lists[$i] [Books: $listlen[$i]]:\n";
+    print q{    }, join( "\n    ", @{ $title[$i] } ), "\n";
+}
+
+#
+# choose a random list weighted by its length...
+#
+my $r = int rand $totbooks;
+print "(r is $r)\n";
+
+my $i = 0;
+while ( $r >= $listlen[$i] ) {
+    $r -= $listlen[$i];
+    $i++;
+}
+
+print "Picking from the top of $lists[$i]...\n";
+my $picked = shift @{ $title[$i] };
+print "I pick: $picked\n";
+
+#
+# rename previous version of list
+#
+rename "$listdir/$lists[$i]", "$listdir/$lists[$i].old"
+    or die "Renaming $listdir/$lists[$i] failed: $ERRNO\n";
+
+#
+# if list is non-empty, print title now at top of list and rewrite the
+# list file
+#
+print "Books remaining in $lists[$i]: ", scalar @{ $title[$i] }, "\n";
+if ( scalar @{ $title[$i] } > 0 ) {
+    print "New top of $lists[$i]: $title[$i][0]\n";
+    open my $NLF, '>', "$listdir/$lists[$i]"
+        or die "Can't open $listdir/$lists[$i] $ERRNO\n";
+    print {$NLF} join( "\n", @{ $title[$i] } ), "\n";
+    close $NLF or die "Closing $listdir/$lists[$i] failed: $ERRNO\n";
+}

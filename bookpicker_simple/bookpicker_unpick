@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+#
+# bookpicker_unpick -- try to "undo" a previous bookpicker pick
+#
+
+use strict;
+use warnings;
+use File::stat;
+use English qw( -no_match_vars );
+use version; our $VERSION = qv('v2017.10.26');
+
+my $listdir = "$ENV{'HOME'}/var/reading_lists";    # list directory
+
+chdir $listdir || die "Could not chdir $listdir: $ERRNO\n";
+#
+#
+# find all list files...
+#
+opendir( LD, q{.} ) || die "Can't open $listdir: $ERRNO\n";
+my @lists = grep {/[.]list$/x} readdir LD;
+closedir LD or die "Can't close $listdir: $ERRNO\n";
+
+my $mrm_mtime = 0;
+my $mrm_list  = q{};
+for my $list (@lists) {
+    my $st = stat $list or die "Stat on $list failed: $ERRNO\n";
+    if ( $st->mtime > $mrm_mtime ) {
+        $mrm_mtime = $st->mtime;
+        $mrm_list  = $list;
+    }
+}
+
+print 'Most recently modified list: ', $mrm_list, ' [',
+    scalar localtime($mrm_mtime), "]\n";
+
+if ( stat( $mrm_list . '.old' ) ) {
+    if ( rename $mrm_list . '.old', $mrm_list ) {
+        print "... previous $mrm_list restored\n";
+    }
+    else {
+        warn "... restoring previous $mrm_list failed\n";
+    }
+}
+else {
+    warn "... could not find previous version of $mrm_list, sorry\n";
+}
