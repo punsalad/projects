@@ -1,0 +1,43 @@
+#!/usr/bin/perl
+#
+# output HTML link of page displayed in Chrome active tab
+# (if argument(s) are specified, glom them together and use that as link target)
+#
+
+use strict;
+use warnings;
+use Const::Fast;
+use English qw( -no_match_vars );
+use JSON;
+use utf8;
+use version; our $VERSION = qv('v2020.06.06');
+
+const my $CLIENT => '/usr/local/bin/chromix-too';
+
+#
+# assume server is running
+#
+binmode STDOUT, ':encoding(utf-8)' or die "binmode failed: $ERRNO\n";
+open my $CTQ, q{-|},
+    ( $CLIENT
+        . q{ raw chrome.tabs.query '{ "active":true, "currentWindow":true }'}
+    ) or die "Failed to run tab query: $ERRNO\n";
+my $ctq_json = <$CTQ>;
+close $CTQ or warn "Closing tab query failed: $ERRNO\n";
+
+my $tab_aref = decode_json($ctq_json);
+for my $tab ( @{$tab_aref} ) {
+    my $t;
+    if (@ARGV) {
+        $t = join q{ }, @ARGV;
+    }
+    else {
+        $t = $tab->{title};
+        #
+        # chop off predictable stuff at title end...
+        #
+        $t
+            =~ s/\s+ [\N{VERTICAL LINE}\N{HYPHEN-MINUS}\N{EN DASH}\N{EM DASH}] \s+ .* $//x;
+    }
+    printf "<a href=\"%s\">%s</a>\n", $tab->{url}, $t;
+}
