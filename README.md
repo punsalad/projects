@@ -37,3 +37,6 @@ might be of general interest or use.
     use on my
     [website](https://punsalad.com/misc/reading_sched_gen.html).
 
+- ttb
+
+    A very small script to output an HTML link to the active tab in Chrome's active window
