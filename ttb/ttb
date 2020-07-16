@@ -10,7 +10,7 @@ use Const::Fast;
 use English qw( -no_match_vars );
 use JSON;
 use utf8;
-use version; our $VERSION = qv('v2020.06.06');
+use version; our $VERSION = qv('v2020.07.13');
 
 const my $CLIENT => '/usr/local/bin/chromix-too';
 
@@ -19,25 +19,50 @@ const my $CLIENT => '/usr/local/bin/chromix-too';
 #
 binmode STDOUT, ':encoding(utf-8)' or die "binmode failed: $ERRNO\n";
 open my $CTQ, q{-|},
-    ( $CLIENT
-        . q{ raw chrome.tabs.query '{ "active":true, "currentWindow":true }'}
-    ) or die "Failed to run tab query: $ERRNO\n";
+    $CLIENT
+    . q{ raw chrome.tabs.query '{ "active":true, "currentWindow":true }'}
+    or die "Failed to run tab query: $ERRNO\n";
 my $ctq_json = <$CTQ>;
 close $CTQ or warn "Closing tab query failed: $ERRNO\n";
-
 my $tab_aref = decode_json($ctq_json);
-for my $tab ( @{$tab_aref} ) {
-    my $t;
+#
+# the query should only give us one tab, so pop it...
+#
+my $tab = pop @{$tab_aref};
+
+#
+# for target text, first get any input
+#
+my $t
+    = do { local $RS = undef; <STDIN> };  ## no critic 'ProhibitExplicitStdin'
+$t =~ s/^ \s+ | \s+ $//gx;
+# chomp $t;
+#
+# if no input ...
+#
+if ( !$t ) {
+    #
+    # if there are arguments, use them
+    #
     if (@ARGV) {
         $t = join q{ }, @ARGV;
     }
     else {
+        #
+        # last resort: use page title
+        #
         $t = $tab->{title};
         #
-        # chop off predictable stuff at title end...
+        # chop off (probable) site identity at title end...
         #
-        $t
-            =~ s/\s+ [\N{VERTICAL LINE}\N{HYPHEN-MINUS}\N{EN DASH}\N{EM DASH}] \s+ .* $//x;
+        $t =~ s{\s+ [ 
+			\N{RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK}
+			\N{LEFT-POINTING DOUBLE ANGLE QUOTATION MARK}
+			\N{VERTICAL LINE}
+			\N{HYPHEN-MINUS}
+			\N{EN DASH}
+			\N{EM DASH}
+			] \s+ .* $}{}x;
     }
-    printf "<a href=\"%s\">%s</a>\n", $tab->{url}, $t;
 }
+printf "<a href=\"%s\">%s</a>\n", $tab->{url}, $t;
