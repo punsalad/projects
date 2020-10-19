@@ -39,18 +39,27 @@
 
 <script>
 function checkForm(form) {
-    if (form.ndays.value == "" && form.enddate.value == "") {
-        alert("Either specify # of days or End date");
-	return false;
+    var nspec = (form.ndays.value == "" ? 0 : 1) +
+                (form.enddate.value == "" ? 0 : 1) +
+                (form.ppd.value == "" ? 0 : 1);
+    if (nspec != 1) {
+        alert("Please specify (exactly) one of 'Number of days', 'End date', or 'Pages/day'");
+        return false;
     }
+
     if (form.enddate.value !== "" && form.enddate.value <= form.startdate.value) {
         alert("End date should be after Start date");
 	return false;
     }
-    if (form.enddate.value == "" && form.ndays.value <= 0) {
+    if (form.ndays.value !== "" && form.ndays.value <= 0) {
         alert("Number of days should be greater than zero.");
 	return false;
     }
+    if (form.ppd.value !== "" && form.ppd.value <= 0) {
+        alert("Pages/day should be greater than zero.");
+	return false;
+    }
+
     if (Number(form.startpage.value) >= Number(form.endpage.value)) {
 	alert("End page number must be greater than start page number");
 	return false;
@@ -108,13 +117,23 @@ document.getElementById("startdate").valueAsDate = new Date();
     </div>
 	    
     <div style="display:table-cell">
-	<b>- or -</b>
+	<b>-&nbsp;or&nbsp;-</b>
     </div>
 	    
     <div style="display:table-cell">
 	<label for="enddate">End date</label>
 	<input type="date" id="enddate" name="enddate">
     </div>
+
+    <div style="display:table-cell">
+	<b>-&nbsp;or&nbsp;-</b>
+    </div>
+	    
+    <div style="display:table-cell">
+	<label for="ppd">Pages/day</label>
+	<input type="number" id="ppd" name="ppd">
+    </div>
+
 </div>
 
 <div class="formline">

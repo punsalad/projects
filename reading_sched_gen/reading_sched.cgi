@@ -13,9 +13,10 @@ use CGI::Carp 'fatalsToBrowser';
 use Const::Fast;
 use English qw( -no_match_vars );
 use HTML::Template;
+use POSIX;
 use Time::Piece;
 use Time::Seconds;
-use version; our $VERSION = qv('v2017.12.25');
+use version; our $VERSION = qv('v2020.10.19');
 
 const my $DAYS_PER_WEEK => 7;
 
@@ -42,8 +43,14 @@ my $startpage = $q->param('startpage');
 
 my $page0 = $startpage - 1;    # "pages already read"
 
+my $endpage = $q->param('endpage');
+( $endpage =~ /^[-+]?\d++$/ ) or die "Sorry, can't parse endpage\n";
+my $npages = $endpage - $page0;
+( $npages > 0 ) || die "Sorry, end must come after start\n";
+
 my $ndays;
 my $enddate;
+my $ppd = 0;
 
 #
 # if number of scheduled days is specified, calculate the end date.
@@ -66,18 +73,20 @@ elsif ( $q->param('enddate') ) {
     $ndays = 1 + ( $enddate - $startdate ) / ONE_DAY;
 }
 #
+# otherwise if pages/day is specified
+#
+elsif ( $q->param('ppd') ) {
+    $ppd = $q->param('ppd');
+    ( $ppd =~ /^\d+$/ && $ppd > 0 ) or die "Invalid pages/day parameter\n";
+    $ndays   = ceil( $npages / $ppd );
+    $enddate = ( $ndays - 1 ) * ONE_DAY + $startdate;
+}
+#
 # oh oh
 #
 else {
     die "Can't figure out end of schedule\n";
 }
-
-my $endpage = $q->param('endpage');
-( $endpage =~ /^[-+]?\d++$/ ) or die "Sorry, can't parse endpage\n";
-
-my $npages = $endpage - $page0;
-
-( $npages > 0 ) || die "Sorry, end must come after start\n";
 
 #
 # start calendar on Sunday...
@@ -95,11 +104,19 @@ while ( $dt <= $enddate ) {
     # loop over days of week...
     #
     for ( 1 .. $DAYS_PER_WEEK ) {
-        my $pg
-            = ( $dayno >= 1 && $dayno <= $ndays )
-            ? sprintf( '%.0f', $page0 + $dayno / $ndays * $npages )
-            : '&nbsp;';
-
+        my $pg;
+        if ( $dayno > $ndays || $dayno <= 0 ) {
+            $pg = '&nbsp;';
+        }
+        elsif ( $dayno == $ndays ) {    # last day, last page
+            $pg = sprintf '%d', $endpage;
+        }
+        else {
+            $pg
+                = ( $ppd > 0 )
+                ? sprintf '%d', $page0 + $dayno * $ppd
+                : sprintf '%.0f', $page0 + $dayno / $ndays * $npages;
+        }
         my $ddd = $dt->mon . q{/} . $dt->day_of_month;
         push @dl, { 'date' => $ddd, 'goal' => $pg, };
         $dt += ONE_DAY;
