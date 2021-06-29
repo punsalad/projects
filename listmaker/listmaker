@@ -1,0 +1,157 @@
+#!/usr/bin/perl
+#
+# produce HTML list for efficient shopping
+#
+
+use strict;
+use warnings;
+use Cwd 'abs_path';
+use Const::Fast;
+use English qw( -no_match_vars );
+use HTML::Template;
+use open qw(:std :encoding(UTF-8));
+use Text::CSV;
+use version; our $VERSION = qv('v2021.06.29');
+
+const my $MAP_CSV_FILE       => $ENV{'HOME'} . '/var/Store_Map.csv';
+const my $AISLE_ORDER_FILE   => $ENV{'HOME'} . '/var/Store_Aisle_Order.txt';
+const my $HTML_TEMPLATE_FILE => $ENV{'HOME'} . '/Templates/Listmaker.tmpl';
+
+my $listfile = shift or die "Usage: $PROGRAM_NAME list\n";
+( -r $listfile )     or die "Usage: $PROGRAM_NAME list\n";
+my $abs_path = abs_path($listfile);
+
+#
+# get aisle/location visiting order
+#
+open my $AOF, '<', $AISLE_ORDER_FILE
+    or die "Opening $AISLE_ORDER_FILE failed: $ERRNO\n";
+chomp( my @aisle_order = <$AOF> );
+close $AOF or warn "Closing $AISLE_ORDER_FILE failed: $ERRNO\n";
+
+#
+# so we can later check input data and sort the list into correct order...
+#
+my %order = map { $aisle_order[$_] => $_ } 0 .. $#aisle_order;
+
+#
+# construct description->location hash from CSV store map file
+#
+my $h_csv = Text::CSV->new()
+    or die 'Cannot use CSV: ', Text::CSV->error_diag(), "\n";
+open my $h_csv_fh, '<', $MAP_CSV_FILE
+    or die "Opening $MAP_CSV_FILE failed: $ERRNO\n";
+$h_csv->column_names(qw(Item Loc));
+my $hlist = $h_csv->getline_hr_all($h_csv_fh);
+close $h_csv_fh or warn "Closing $MAP_CSV_FILE failed: $ERRNO\n";
+
+my %hmap;
+for my $item ( @{$hlist} ) {
+    if ( !exists $order{ $item->{Loc} } ) {
+        warn 'WARNING: Aisle/Location ', $item->{Loc},
+            " in $MAP_CSV_FILE not present in $AISLE_ORDER_FILE\n";
+        next;
+    }
+    $hmap{ lc $item->{Item} } = $item->{Loc};
+}
+
+#
+# read input list...
+#
+open my $LF, '<', $listfile or die "Failed to open $listfile: $ERRNO\n";
+chomp( my @listlines = <$LF> );
+close $LF or warn "Closting $listfile failed: $ERRNO\n";
+
+#
+# process input list, asking for locations as needed...
+#
+my $csv_changes = 0;
+my @list        = ();
+for (@listlines) {
+    #
+    # parse list line with regex (sorry)
+    #
+    my ( $qty, $desc, $notes )
+        = (
+        /^ (?:(\d+)? \s+)? ([^\N{VERTICAL LINE}]+) (?:\s* \N{VERTICAL LINE} \s* (.+))? $/gx
+        );
+    defined $desc or next;
+    $desc =~ s/\s+$//;
+    defined $qty or ( $qty = 1 );
+    if ( defined $notes ) {
+        $notes =~ s/\s+$//;
+    }
+    else {
+        $notes = q{};
+    }
+
+    #
+    # if list item not currently in store map, ask and save for next time
+    #
+    while ( !exists $hmap{ lc $desc } ) {
+        print "Please tell me the aisle/location of item '$desc': ";
+        chomp( my $aisle = <> );
+        if ( exists $order{$aisle} ) {
+            $hmap{ lc $desc } = $aisle;
+            $csv_changes++;
+        }
+        else {
+            print
+                "   Sorry, $aisle not present in $AISLE_ORDER_FILE. Try again...\n";
+        }
+    }
+    push @list,
+        {
+        Qty   => $qty,
+        Desc  => $desc,
+        Loc   => $hmap{ lc $desc },
+        Notes => $notes,
+        };
+}
+
+#
+# sort list into aisle order...
+#
+@list = sort { $order{ $a->{'Loc'} } <=> $order{ $b->{Loc} } } @list;
+
+#
+# construct output HTML list
+#
+my @listloop = ();
+my $prevloc  = q{};
+for my $item (@list) {
+    push @listloop,
+        {
+        item   => $item->{Desc},
+        qty    => ( $item->{Qty} > 1 ) ? $item->{Qty} : '&nbsp;',
+        notes  => $item->{Notes},
+        loc    => $item->{Loc},
+        newloc => ( $item->{Loc} ne $prevloc ),
+        };
+    $prevloc = $item->{Loc};
+}
+
+my $template = HTML::Template->new( filename => $HTML_TEMPLATE_FILE, );
+$template->param( 'items' => \@listloop );
+
+my $outfile = $abs_path . '.html';
+open my $HTML, '>', $outfile
+    or die "Opening $outfile failed: $ERRNO\n";
+print {$HTML} $template->output;
+close $HTML or warn "Closing $outfile failed: $ERRNO\n";
+print "[HTML list saved at file://$outfile]\n";
+
+#
+# output updated store map CSV if changed
+#
+if ($csv_changes) {
+    rename $MAP_CSV_FILE, $MAP_CSV_FILE . '.old'
+        or die "Renaming $MAP_CSV_FILE failed: $ERRNO\n";
+    my $csv_out = Text::CSV->new( { eol => $RS } );
+    open my $csv_out_fh, '>', $MAP_CSV_FILE
+        or die "Opening $MAP_CSV_FILE for output failed: $ERRNO\n";
+    for my $item ( keys %hmap ) {
+        $csv_out->print( $csv_out_fh, [ $item, $hmap{$item} ] );
+    }
+    close $csv_out_fh or warn "Closing $MAP_CSV_FILE failed: $ERRNO\n";
+}
