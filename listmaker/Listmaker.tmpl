@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang=en>
+<head>
+<title>Hannaford List</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<style>
+td,th { font-size:12px; font-family: Arial, Helvetica, sans-serif; padding: 5px;}
+table { border-collapse; border-spacing: 0px 10px;}
+</style>
+</head>
+
+<body>
+
+<table>
+    <!-- <colgroup width="92"></colgroup>
+        <colgroup width="39"></colgroup>
+        <colgroup width="308"></colgroup>
+        <colgroup width="219"></colgroup> -->
+<tr>
+    <th>Loc/Aisle</th>
+    <th>Qty</th>
+    <th>Item</th>
+    <th>Notes</th>
+</tr>
+
+
+<TMPL_LOOP NAME="items">
+	<tr>
+	<TMPL_IF NAME="newloc"><td style="border-top: 1px solid black; text-align:center;"><TMPL_ELSE><td></TMPL_IF>
+	<TMPL_IF NAME="newloc">
+	    <b><TMPL_VAR NAME="loc"></b>
+	<TMPL_ELSE>
+	     &nbsp;
+	</TMPL_IF>
+	</td>
+
+	<TMPL_IF NAME="newloc"><td style="border-top: 1px solid black"><TMPL_ELSE><td></TMPL_IF><TMPL_VAR NAME="qty"></td>
+	<TMPL_IF NAME="newloc"><td style="border-top: 1px solid black"><TMPL_ELSE><td></TMPL_IF><TMPL_VAR NAME="item"></td>
+	<TMPL_IF NAME="newloc"><td style="border-top: 1px solid black"><TMPL_ELSE><td></TMPL_IF><TMPL_VAR NAME="notes"></td>
+    </tr>
+</TMPL_LOOP>
+</table>
+</body>
