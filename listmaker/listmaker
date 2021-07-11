@@ -35,7 +35,7 @@ close $AOF or warn "Closing $AISLE_ORDER_FILE failed: $ERRNO\n";
 my %order = map { $aisle_order[$_] => $_ } 0 .. $#aisle_order;
 
 #
-# construct description->location hash from CSV store map file
+# construct item->location hash from CSV store map file
 #
 my $h_csv = Text::CSV->new()
     or die 'Cannot use CSV: ', Text::CSV->error_diag(), "\n";
@@ -68,6 +68,14 @@ close $LF or warn "Closting $listfile failed: $ERRNO\n";
 my $csv_changes = 0;
 my @list        = ();
 for (@listlines) {
+
+	#
+	# ignore comments
+	#
+	if (/^#/) {
+       next;
+	}
+	
     #
     # parse list line with regex (sorry)
     #
