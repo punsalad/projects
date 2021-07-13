@@ -5,54 +5,62 @@
 
 use strict;
 use warnings;
-use Cwd 'abs_path';
 use Const::Fast;
+use Cwd 'abs_path';
+use Data::Dumper;
 use English qw( -no_match_vars );
+use Getopt::Std;
 use HTML::Template;
 use open qw(:std :encoding(UTF-8));
-use Text::CSV;
-use version; our $VERSION = qv('v2021.06.29');
+use version; our $VERSION = qv('v2021.07.12');
 
-const my $MAP_CSV_FILE       => $ENV{'HOME'} . '/var/Store_Map.csv';
-const my $AISLE_ORDER_FILE   => $ENV{'HOME'} . '/var/Store_Aisle_Order.txt';
 const my $HTML_TEMPLATE_FILE => $ENV{'HOME'} . '/Templates/Listmaker.tmpl';
+const my $USAGE => "Usage: $PROGRAM_NAME [-s store configuration file] list";
+const my $DEFAULT_CF_FILE => $ENV{'HOME'} . '/etc/listmaker.cf';
 
-my $listfile = shift or die "Usage: $PROGRAM_NAME list\n";
-( -r $listfile )     or die "Usage: $PROGRAM_NAME list\n";
+#
+# handle command-line arguments...
+#
+my %opts;
+getopts( 's:', \%opts ) or die "$USAGE\n";
+my $list_cf_file = ( defined $opts{'s'} ) ? $opts{'s'} : $DEFAULT_CF_FILE;
+( -r $list_cf_file ) or die "$USAGE\n";
+
+my $listfile = shift or die "$USAGE\n";
+( -r $listfile )     or die "$USAGE\n";
 my $abs_path = abs_path($listfile);
 
 #
-# get aisle/location visiting order
+# read specified store config file...
 #
-open my $AOF, '<', $AISLE_ORDER_FILE
-    or die "Opening $AISLE_ORDER_FILE failed: $ERRNO\n";
-chomp( my @aisle_order = <$AOF> );
-close $AOF or warn "Closing $AISLE_ORDER_FILE failed: $ERRNO\n";
+our ( %ORDER, %HMAP );
+if ( !( my $return = do $list_cf_file ) ) {
+    die "Couldn't parse $list_cf_file $EVAL_ERROR\n" if $EVAL_ERROR;
+    die "Couldn't do    $list_cf_file $ERRNO\n"      if !defined $return;
+    die "Couldn't run   $list_cf_file\n"             if !$return;
+}
 
 #
-# so we can later check input data and sort the list into correct order...
+# sanity checks: ORDER hash should have unique unsigned integer values...
 #
-my %order = map { $aisle_order[$_] => $_ } 0 .. $#aisle_order;
-
-#
-# construct item->location hash from CSV store map file
-#
-my $h_csv = Text::CSV->new()
-    or die 'Cannot use CSV: ', Text::CSV->error_diag(), "\n";
-open my $h_csv_fh, '<', $MAP_CSV_FILE
-    or die "Opening $MAP_CSV_FILE failed: $ERRNO\n";
-$h_csv->column_names(qw(Item Loc));
-my $hlist = $h_csv->getline_hr_all($h_csv_fh);
-close $h_csv_fh or warn "Closing $MAP_CSV_FILE failed: $ERRNO\n";
-
-my %hmap;
-for my $item ( @{$hlist} ) {
-    if ( !exists $order{ $item->{Loc} } ) {
-        warn 'WARNING: Aisle/Location ', $item->{Loc},
-            " in $MAP_CSV_FILE not present in $AISLE_ORDER_FILE\n";
-        next;
+my %order_seen;
+for my $loc ( keys %ORDER ) {
+    if ( $ORDER{$loc} !~ /^ \d+ $/x ) {
+        warn
+            "$list_cf_file: ORDER hash key $loc has invalid value '$ORDER{$loc}'\n";
     }
-    $hmap{ lc $item->{Item} } = $item->{Loc};
+    elsif ( $order_seen{ $ORDER{$loc} }++ ) {
+        warn "$list_cf_file: duplicate value in ORDER hash $ORDER{$loc}\n";
+    }
+}
+
+#
+# and all items' locations should appear in ORDER hash
+#
+for my $item ( keys %HMAP ) {
+    ( exists $ORDER{ $HMAP{$item} } )
+        or warn
+        "$list_cf_file: item $item has unknown location $HMAP{$item}\n";
 }
 
 #
@@ -65,17 +73,17 @@ close $LF or warn "Closting $listfile failed: $ERRNO\n";
 #
 # process input list, asking for locations as needed...
 #
-my $csv_changes = 0;
+my $map_changes = 0;
 my @list        = ();
 for (@listlines) {
 
-	#
-	# ignore comments
-	#
-	if (/^#/) {
-       next;
-	}
-	
+    #
+    # ignore comments
+    #
+    if (/^#/) {
+        next;
+    }
+
     #
     # parse list line with regex (sorry)
     #
@@ -96,23 +104,23 @@ for (@listlines) {
     #
     # if list item not currently in store map, ask and save for next time
     #
-    while ( !exists $hmap{ lc $desc } ) {
+    while ( !exists $HMAP{ lc $desc } ) {
         print "Please tell me the aisle/location of item '$desc': ";
         chomp( my $aisle = <> );
-        if ( exists $order{$aisle} ) {
-            $hmap{ lc $desc } = $aisle;
-            $csv_changes++;
+        if ( exists $ORDER{$aisle} ) {
+            $HMAP{ lc $desc } = $aisle;
+            $map_changes++;
         }
         else {
             print
-                "   Sorry, $aisle not present in $AISLE_ORDER_FILE. Try again...\n";
+                "   Sorry, $aisle not present in $list_cf_file. Try again...\n";
         }
     }
     push @list,
         {
         Qty   => $qty,
         Desc  => $desc,
-        Loc   => $hmap{ lc $desc },
+        Loc   => $HMAP{ lc $desc },
         Notes => $notes,
         };
 }
@@ -120,7 +128,7 @@ for (@listlines) {
 #
 # sort list into aisle order...
 #
-@list = sort { $order{ $a->{'Loc'} } <=> $order{ $b->{Loc} } } @list;
+@list = sort { $ORDER{ $a->{'Loc'} } <=> $ORDER{ $b->{Loc} } } @list;
 
 #
 # construct output HTML list
@@ -150,16 +158,17 @@ close $HTML or warn "Closing $outfile failed: $ERRNO\n";
 print "[HTML list saved at file://$outfile]\n";
 
 #
-# output updated store map CSV if changed
+# update store config file if map changed
 #
-if ($csv_changes) {
-    rename $MAP_CSV_FILE, $MAP_CSV_FILE . '.old'
-        or die "Renaming $MAP_CSV_FILE failed: $ERRNO\n";
-    my $csv_out = Text::CSV->new( { eol => $RS } );
-    open my $csv_out_fh, '>', $MAP_CSV_FILE
-        or die "Opening $MAP_CSV_FILE for output failed: $ERRNO\n";
-    for my $item ( keys %hmap ) {
-        $csv_out->print( $csv_out_fh, [ $item, $hmap{$item} ] );
+if ($map_changes) {
+    rename $list_cf_file, $list_cf_file . '.old'
+        or die "Renaming $list_cf_file failed: $ERRNO\n";
+    open my $CF, '>', $list_cf_file
+        or die "Opening $list_cf_file for output failed: $ERRNO\n";
+    {
+        local $Data::Dumper::Trailingcomma = 1;
+        print {$CF}
+            Data::Dumper->Dump( [ \%ORDER, \%HMAP ], [qw/*ORDER *HMAP/] );
     }
-    close $csv_out_fh or warn "Closing $MAP_CSV_FILE failed: $ERRNO\n";
+    close $CF or warn "Closing $list_cf_file failed: $ERRNO\n";
 }
