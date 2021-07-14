@@ -30,6 +30,11 @@ might be of general interest or use.
 
     A small script to generate a year's calendar in HTML.
 
+- listmaker
+
+   Translate my wife's handwritten grocery shopping list into a printable HTML list organized for
+   "efficient" traversal of the store. Yes, really.
+
 - reading_sched_gen
 
     A CGI script and associated form to generate a reading page-goal
