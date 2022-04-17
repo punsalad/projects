@@ -22,6 +22,42 @@
     background: #cce6ff;
 }
 </style>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+  google.charts.load("current", {packages:["corechart"]});
+  google.charts.setOnLoadCallback(drawChart);
+  function drawChart() {
+    var data = google.visualization.arrayToDataTable([
+      ['Stack', 'Weight'],
+      
+      ['Michael Connelly',479],
+      
+      ['Robert Crais',729],
+      
+      ['Dune',183],
+      
+      ['General Fiction',163],
+      
+      ['Mystery',249],
+      
+      ['Non-Fiction',666],
+      
+      ['IQ',103],
+      
+      ['Tom Bouman',100],
+      
+    ]);
+
+    var options = {
+      title: 'Pick Probabilities',
+      is3D: true,
+    };
+
+    var chart = new google.visualization.PieChart(document.getElementById('piechart_3d'));
+    chart.draw(data, options);
+  }
+</script>
+
 </head>
 
 <body>
@@ -30,85 +66,33 @@
 <caption>TBR Stacks</caption>
 <tr>
     <th>Stack<br>(<span style="color:green">Eligible</span> / <span style="color:red">Ineligible</span>)</th>
-    <th>Last Picked</th>
+    <!-- <th>Last Picked</th> -->
     <th>MinAge</th>
     <th>Age</th>
-    <th>Weight</th>
-    <th>Pick Probability</i>
-    <th>Titles<br>(<span style="color:black">Owned</span> / <span style="color:gray">Unowned</span>)</th>
+    <th>Titles<br>(<span style="color:black;font-weight:bolder;">Owned</span> / <span style="color:gray">Unowned</span>)</th>
 </tr>
 
 
 
     <tr>
-	<td><b><span style="color:red">Tana French</span></b></td>
-	<td>2019-10-31</td>
-	<td>42d</td>
-	<td>11d</td>
-	<td>0</td>
-	<td> 0.0%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:gray"><i>Broken Harbor</i></span>
-	    
-	    <li> <span style="color:gray"><i>The Secret Place</i></span>
-	    
-	    <li> <span style="color:gray"><i>The Trespasser</i></span>
-	    
-	    <li> <span style="color:gray"><i>The Witch Elm</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:green">Chronicles of Amber</span></b></td>
-	<td>2019-05-02</td>
-	<td>42d</td>
-	<td>193d</td>
-	<td>193</td>
-	<td> 2.0%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:black"><i>Prince of Chaos</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:green">C.J. Box</span></b></td>
-	<td>2019-05-22</td>
+	<td><b><span style="color:red">C.J. Box</span></b></td>
+	<!-- <td></td> -->
 	<td>30d</td>
-	<td>173d</td>
-	<td>1214</td>
-	<td>12.4%</td>
+	<td>10d</td>
 
 	<td>
 	    
 	    <ol>
 	    
-	    <li> <span style="color:black"><i>Off the Grid</i></span>
+	    <li> <span style="color:black;font-weight:bolder"><i>Shadows Reel</i></span><br>
+	    C. J. Box</br>
+	    (B097B3S6TX)
+
 	    
-	    <li> <span style="color:black"><i>Vicious Circle</i></span>
-	    
-	    <li> <span style="color:black"><i>Paradise Valley</i></span>
-	    
-	    <li> <span style="color:black"><i>The Disappeared</i></span>
-	    
-	    <li> <span style="color:gray"><i>Wolf Pack</i></span>
-	    
-	    <li> <span style="color:gray"><i>The Bitterroots</i></span>
-	    
-	    <li> <span style="color:gray"><i>Long Range</i></span>
+	    <li> <span style="color:gray"><i>Treasure State</i></span><br>
+	    C. J. Box</br>
+	    (B09CNDSKZJ)
+
 	    
 	    </ol>
 	    
@@ -117,21 +101,23 @@
 
     <tr>
 	<td><b><span style="color:green">Michael Connelly</span></b></td>
-	<td>2018-06-22</td>
+	<!-- <td></td> -->
 	<td>30d</td>
-	<td>507d</td>
-	<td>1522</td>
-	<td>15.6%</td>
+	<td>239d</td>
 
 	<td>
 	    
 	    <ol>
 	    
-	    <li> <span style="color:black"><i>Two Kinds of Truth</i></span>
+	    <li> <span style="color:black;font-weight:bolder"><i>The Dark Hours</i></span><br>
+	    Michael Connelly</br>
+	    (B08WLRG1L2)
+
 	    
-	    <li> <span style="color:black"><i>Dark Sacred Night</i></span>
-	    
-	    <li> <span style="color:gray"><i>The Night Fire</i></span>
+	    <li> <span style="color:gray"><i>Desert Star</i></span><br>
+	    Michael Connelly</br>
+	    (B09QKSLPN9)
+
 	    
 	    </ol>
 	    
@@ -139,20 +125,94 @@
     </tr>
 
     <tr>
-	<td><b><span style="color:red">Continental Op</span></b></td>
-	<td>2019-10-23</td>
-	<td>30d</td>
-	<td>19d</td>
-	<td>0</td>
-	<td> 0.0%</td>
+	<td><b><span style="color:green">Robert Crais</span></b></td>
+	<!-- <td></td> -->
+	<td>45d</td>
+	<td>45d</td>
 
 	<td>
 	    
 	    <ol>
 	    
-	    <li> <span style="color:black"><i>The Cleansing of Poisonville</i></span>
+	    <li> <span style="color:black;font-weight:bolder"><i>L. A. Requiem</i></span><br>
+	    Robert Crais</br>
+	    (0385495838)
+
 	    
-	    <li> <span style="color:black"><i>The Dain Curse</i></span>
+	    <li> <span style="color:gray"><i>Racing the Light</i></span><br>
+	    Robert Crais</br>
+	    (B09RP51VDG)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Demolition Angel</i></span><br>
+	    Robert Crais</br>
+	    (0385495846)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Hostage</i></span><br>
+	    Robert Crais</br>
+	    (0385495854)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Last Detective</i></span><br>
+	    Robert Crais</br>
+	    (0385504268)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Forgotten Man</i></span><br>
+	    Robert Crais</br>
+	    (5556255687)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Two Minute Rule</i></span><br>
+	    Robert Crais</br>
+	    (0743281616)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Watchman</i></span><br>
+	    Robert Crais</br>
+	    (0743281632)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Chasing Darkness</i></span><br>
+	    Robert Crais</br>
+	    (0743281640)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The First Rule</i></span><br>
+	    Robert Crais</br>
+	    (0399156135)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Sentry</i></span><br>
+	    Robert Crais</br>
+	    (B00475AS2O)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Taken</i></span><br>
+	    Robert Crais</br>
+	    (B005ERIJWU)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Suspect</i></span><br>
+	    Robert Crais</br>
+	    (B008RCZLNO)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Promise</i></span><br>
+	    Robert Crais</br>
+	    (B00K0U6MRU)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Wanted</i></span><br>
+	    Robert Crais</br>
+	    (B01M09NRYP)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>A Dangerous Man</i></span><br>
+	    Robert Crais</br>
+	    (B07HW1BWHQ)
+
 	    
 	    </ol>
 	    
@@ -160,12 +220,35 @@
     </tr>
 
     <tr>
-	<td><b><span style="color:red">Robert Crais</span></b></td>
-	<td>2019-08-07</td>
-	<td>30d</td>
-	<td>96d</td>
-	<td>0</td>
-	<td> 0.0%</td>
+	<td><b><span style="color:green">Dune</span></b></td>
+	<!-- <td></td> -->
+	<td>60d</td>
+	<td>91d</td>
+
+	<td>
+	    
+	    <ol>
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Heretics of Dune</i></span><br>
+	    Frank Herbert</br>
+	    (0739446045)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Chapterhouse: Dune</i></span><br>
+	    Frank Herbert</br>
+	    (0593098277)
+
+	    
+	    </ol>
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:red">Tana French</span></b></td>
+	<!-- <td></td> -->
+	<td>42d</td>
+	<td>291d</td>
 
 	<td>
 	    
@@ -176,50 +259,23 @@
 
     <tr>
 	<td><b><span style="color:green">General Fiction</span></b></td>
-	<td>2019-07-03</td>
-	<td>30d</td>
-	<td>131d</td>
-	<td>525</td>
-	<td> 5.4%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:black"><i>Since We Fell (Kindle)</i></span>
-	    
-	    <li> <span style="color:gray"><i>Invisible Man</i></span>
-	    
-	    <li> <span style="color:black"><i>Red Storm Rising</i></span>
-	    
-	    <li> <span style="color:black"><i>Streets of Laredo</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:green">Steve Hamilton</span></b></td>
-	<td>2019-08-22</td>
+	<!-- <td></td> -->
 	<td>30d</td>
 	<td>81d</td>
-	<td>407</td>
-	<td> 4.2%</td>
 
 	<td>
 	    
 	    <ol>
 	    
-	    <li> <span style="color:black"><i>Let It Burn</i></span>
+	    <li> <span style="color:black;font-weight:bolder"><i>A Confederacy of Dunces</i></span><br>
+	    John Kennedy Toole</br>
+	    (0802130208)
+
 	    
-	    <li> <span style="color:black"><i>The Second Life of Nick Mason</i></span>
-	    
-	    <li> <span style="color:black"><i>Exit Strategy</i></span>
-	    
-	    <li> <span style="color:gray"><i>Dead Man Running</i></span>
-	    
-	    <li> <span style="color:gray"><i>An Honorable Assassin</i></span>
+	    <li> <span style="color:black;font-weight:bolder"><i>Brave New World</i></span><br>
+	    Aldous Huxley</br>
+	    (0060850523)
+
 	    
 	    </ol>
 	    
@@ -227,298 +283,10 @@
     </tr>
 
     <tr>
-	<td><b><span style="color:green">Robert A. Heinlein</span></b></td>
-	<td>2019-07-26</td>
+	<td><b><span style="color:red">Steve Hamilton</span></b></td>
+	<!-- <td></td> -->
 	<td>30d</td>
-	<td>108d</td>
-	<td>2927</td>
-	<td>30.0%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:black"><i>Waldo and Magic Inc.</i></span>
-	    
-	    <li> <span style="color:black"><i>Have Space Suit Will Travel</i></span>
-	    
-	    <li> <span style="color:black"><i>Friday</i></span>
-	    
-	    <li> <span style="color:gray"><i>Space Cadet</i></span>
-	    
-	    <li> <span style="color:black"><i>The Star Beast</i></span>
-	    
-	    <li> <span style="color:black"><i>Starship Troopers</i></span>
-	    
-	    <li> <span style="color:black"><i>Methuselah's Children</i></span>
-	    
-	    <li> <span style="color:black"><i>Job: A Comedy of Justice</i></span>
-	    
-	    <li> <span style="color:black"><i>The Moon is a Harsh Mistress</i></span>
-	    
-	    <li> <span style="color:gray"><i>Farnham's Freehold</i></span>
-	    
-	    <li> <span style="color:black"><i>Citizen of the Galaxy</i></span>
-	    
-	    <li> <span style="color:black"><i>I Will Fear No Evil</i></span>
-	    
-	    <li> <span style="color:gray"><i>Starman Jones</i></span>
-	    
-	    <li> <span style="color:black"><i>Between Planets</i></span>
-	    
-	    <li> <span style="color:gray"><i>Rocket Ship Galileo</i></span>
-	    
-	    <li> <span style="color:black"><i>Beyond This Horizon</i></span>
-	    
-	    <li> <span style="color:black"><i>The Worlds of Robert A. Heinlein</i></span>
-	    
-	    <li> <span style="color:gray"><i>The Rolling Stones</i></span>
-	    
-	    <li> <span style="color:black"><i>The Menace from Earth</i></span>
-	    
-	    <li> <span style="color:black"><i>The Unpleasant Profession of Jonathan Hoag</i></span>
-	    
-	    <li> <span style="color:gray"><i>Time for the Stars</i></span>
-	    
-	    <li> <span style="color:black"><i>Orphans of the Sky</i></span>
-	    
-	    <li> <span style="color:black"><i>Tunnel in the Sky</i></span>
-	    
-	    <li> <span style="color:black"><i>Time Enough For Love</i></span>
-	    
-	    <li> <span style="color:black"><i>The Number of the Beast</i></span>
-	    
-	    <li> <span style="color:black"><i>The Cat Who Walks Through Walls</i></span>
-	    
-	    <li> <span style="color:black"><i>To Sail Beyond the Sunset</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:green">Monkeewrench</span></b></td>
-	<td>2019-05-16</td>
-	<td>30d</td>
-	<td>179d</td>
-	<td>358</td>
-	<td> 3.7%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:black"><i>The Guilty Dead (Kindle)</i></span>
-	    
-	    <li> <span style="color:gray"><i>Ice Cold Heart</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:green">Christopher Moore</span></b></td>
-	<td>2019-02-08</td>
-	<td>30d</td>
-	<td>276d</td>
-	<td>276</td>
-	<td> 2.8%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:black"><i>Noir</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:red">Mystery</span></b></td>
-	<td>2019-05-12</td>
-	<td>30d</td>
-	<td>183d</td>
-	<td>0</td>
-	<td> 0.0%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:gray"><i>The Siberian Dilemma</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:green">Non-Fiction</span></b></td>
-	<td>2019-07-28</td>
-	<td>30d</td>
-	<td>106d</td>
-	<td>1490</td>
-	<td>15.3%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:black"><i>Both Flesh and Not</i></span>
-	    
-	    <li> <span style="color:black"><i>Lessons From Lucy</i></span>
-	    
-	    <li> <span style="color:black"><i>Open Borders</i></span>
-	    
-	    <li> <span style="color:black"><i>The Origins of Virtue</i></span>
-	    
-	    <li> <span style="color:black"><i>Modern Philosophy</i></span>
-	    
-	    <li> <span style="color:black"><i>Libertarianism</i></span>
-	    
-	    <li> <span style="color:black"><i>From Dawn to Decadence</i></span>
-	    
-	    <li> <span style="color:black"><i>A Moment on the Earth</i></span>
-	    
-	    <li> <span style="color:black"><i>The Open Society and Its Enemies v1</i></span>
-	    
-	    <li> <span style="color:black"><i>The Discoverers</i></span>
-	    
-	    <li> <span style="color:black"><i>Programming as if People Mattered</i></span>
-	    
-	    <li> <span style="color:black"><i>The Open Society and Its Enemies v2</i></span>
-	    
-	    <li> <span style="color:black"><i>The Creators</i></span>
-	    
-	    <li> <span style="color:black"><i>What If?</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:red">Lee Child</span></b></td>
-	<td>2019-05-08</td>
-	<td>30d</td>
-	<td>187d</td>
-	<td>0</td>
-	<td> 0.0%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:gray"><i>Blue Moon</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:green">Science Fiction</span></b></td>
-	<td>2019-03-04</td>
-	<td>30d</td>
-	<td>252d</td>
-	<td>252</td>
-	<td> 2.6%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:black"><i>To Say Nothing of the Dog</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:red">Spenser</span></b></td>
-	<td>2018-07-28</td>
-	<td>30d</td>
-	<td>471d</td>
-	<td>0</td>
-	<td> 0.0%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:gray"><i>Angel Eyes</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:green">Neal Stephenson</span></b></td>
-	<td>2019-09-06</td>
-	<td>60d</td>
-	<td>66d</td>
-	<td>597</td>
-	<td> 6.1%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:black"><i>Snow Crash</i></span>
-	    
-	    <li> <span style="color:black"><i>The Diamond Age</i></span>
-	    
-	    <li> <span style="color:black"><i>Quicksilver</i></span>
-	    
-	    <li> <span style="color:black"><i>The Confusion</i></span>
-	    
-	    <li> <span style="color:black"><i>The System of the World</i></span>
-	    
-	    <li> <span style="color:black"><i>Anathem</i></span>
-	    
-	    <li> <span style="color:black"><i>Reamde</i></span>
-	    
-	    <li> <span style="color:black"><i>Seveneves</i></span>
-	    
-	    <li> <span style="color:black"><i>The Rise and Fall of D.O.D.O.</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:red">Don Winslow</span></b></td>
-	<td>2018-08-08</td>
-	<td>30d</td>
-	<td>460d</td>
-	<td>0</td>
-	<td> 0.0%</td>
-
-	<td>
-	    
-	    <ol>
-	    
-	    <li> <span style="color:gray"><i>The Border</i></span>
-	    
-	    </ol>
-	    
-	</td>
-    </tr>
-
-    <tr>
-	<td><b><span style="color:red">Dave Robicheaux</span></b></td>
-	<td>2019-08-12</td>
-	<td>30d</td>
-	<td>91d</td>
-	<td>0</td>
-	<td> 0.0%</td>
+	<td>417d</td>
 
 	<td>
 	    
@@ -527,5 +295,393 @@
 	</td>
     </tr>
 
+    <tr>
+	<td><b><span style="color:red">Robert A. Heinlein</span></b></td>
+	<!-- <td></td> -->
+	<td>45d</td>
+	<td>24d</td>
+
+	<td>
+	    
+	    <ol>
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Starman Jones</i></span><br>
+	    Robert A. Heinlein</br>
+	    (B00APA1MLQ)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Between Planets</i></span><br>
+	    Robert A. Heinlein</br>
+	    (B000LZDVZK)
+
+	    
+	    <li> <span style="color:gray"><i>Rocket Ship Galileo</i></span><br>
+	    Robert A. Heinlein</br>
+	    (B00H8XGKVU)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Beyond This Horizon</i></span><br>
+	    Robert A. Heinlein</br>
+	    (0743435613)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Worlds of Robert A. Heinlein</i></span><br>
+	    Robert A. Heinlein</br>
+	    (B002ASOHUO)
+
+	    
+	    <li> <span style="color:gray"><i>The Rolling Stones</i></span><br>
+	    Robert A. Heinlein</br>
+	    (1439133565)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Menace from Earth</i></span><br>
+	    Robert A. Heinlein</br>
+	    (B008HOKM4A)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Unpleasant Profession of Jonathan Hoag</i></span><br>
+	    Robert A. Heinlein</br>
+	    (B008AL0EFW)
+
+	    
+	    <li> <span style="color:gray"><i>Time for the Stars</i></span><br>
+	    Robert A. Heinlein</br>
+	    (B01N9IMIZQ)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Orphans of the Sky</i></span><br>
+	    Robert A. Heinlein</br>
+	    (B07WJSFW6M)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Tunnel in the Sky</i></span><br>
+	    Robert A. Heinlein</br>
+	    (B004IK9478)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Time Enough For Love</i></span><br>
+	    Robert A. Heinlein</br>
+	    (0593437241)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Cat Who Walks Through Walls</i></span><br>
+	    Robert A. Heinlein</br>
+	    (0399131035)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>To Sail Beyond the Sunset</i></span><br>
+	    Robert A. Heinlein</br>
+	    (5551614603)
+
+	    
+	    </ol>
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:red">Carl Hiaasen</span></b></td>
+	<!-- <td></td> -->
+	<td>30d</td>
+	<td>543d</td>
+
+	<td>
+	    
+	         [empty]
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:red">Christopher Moore</span></b></td>
+	<!-- <td></td> -->
+	<td>30d</td>
+	<td>618d</td>
+
+	<td>
+	    
+	    <ol>
+	    
+	    <li> <span style="color:gray"><i>Razzmatazz</i></span><br>
+	    Christopher Moore</br>
+	    (B09CQ3951F)
+
+	    
+	    </ol>
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:green">Mystery</span></b></td>
+	<!-- <td></td> -->
+	<td>30d</td>
+	<td>124d</td>
+
+	<td>
+	    
+	    <ol>
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Goodbye Coast</i></span><br>
+	    Joe Ide</br>
+	    (B096RS2G58)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Norwegian by Night</i></span><br>
+	    Derek B. Miller</br>
+	    (0544292669)
+
+	    
+	    </ol>
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:green">Non-Fiction</span></b></td>
+	<!-- <td></td> -->
+	<td>30d</td>
+	<td>55d</td>
+
+	<td>
+	    
+	    <ol>
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Where is My Flying Car?</i></span><br>
+	    J. Storrs Hall</br>
+	    (1953953182)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Hamilton</i></span><br>
+	    Ron Chernow</br>
+	    (0143034758)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The True Believer</i></span><br>
+	    Eric Hoffer</br>
+	    (0060505915)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Modern Philosophy</i></span><br>
+	    Roger Scruton</br>
+	    (0140249079)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Libertarianism</i></span><br>
+	    David Boaz</br>
+	    (068484768X)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>John Adams</i></span><br>
+	    David McCullough</br>
+	    (0684813637)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>From Dawn to Decadence</i></span><br>
+	    Jacques Barzun</br>
+	    (0060928832)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Open Society and Its Enemies v1</i></span><br>
+	    Karl Popper</br>
+	    (0691019681)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Creators</i></span><br>
+	    Daniel J. Boorstin</br>
+	    (0679743758)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Discoverers</i></span><br>
+	    Daniel J. Boorstin</br>
+	    (0394726251)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Programming as if People Mattered</i></span><br>
+	    Nathaniel S. Borenstein</br>
+	    (0691636400)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Open Society and Its Enemies v2</i></span><br>
+	    Karl Popper</br>
+	    (0314195211)
+
+	    
+	    </ol>
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:red">Lee Child</span></b></td>
+	<!-- <td></td> -->
+	<td>30d</td>
+	<td>94d</td>
+
+	<td>
+	    
+	    <ol>
+	    
+	    <li> <span style="color:gray"><i>No Plan B</i></span><br>
+	    Lee Child and Andrew Child</br>
+	    (B09PMZ93DT)
+
+	    
+	    </ol>
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:red">Science Fiction</span></b></td>
+	<!-- <td></td> -->
+	<td>30d</td>
+	<td>244d</td>
+
+	<td>
+	    
+	         [empty]
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:red">Spenser</span></b></td>
+	<!-- <td></td> -->
+	<td>30d</td>
+	<td>0d</td>
+
+	<td>
+	    
+	         [empty]
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:red">Neal Stephenson</span></b></td>
+	<!-- <td></td> -->
+	<td>60d</td>
+	<td>39d</td>
+
+	<td>
+	    
+	    <ol>
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Reamde</i></span><br>
+	    Neal Stephenson</br>
+	    (0061977969)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Seveneves</i></span><br>
+	    Neal Stephenson</br>
+	    (0062190377)
+
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Rise and Fall of D.O.D.O.</i></span><br>
+	    Neal Stephenson</br>
+	    (0062409166)
+
+	    
+	    </ol>
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:red">Don Winslow</span></b></td>
+	<!-- <td></td> -->
+	<td>30d</td>
+	<td>62d</td>
+
+	<td>
+	    
+	    <ol>
+	    
+	    <li> <span style="color:gray"><i>City on Fire</i></span><br>
+	    Don Winslow</br>
+	    (B09131XKCQ)
+
+	    
+	    </ol>
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:red">Dave Robicheaux</span></b></td>
+	<!-- <td></td> -->
+	<td>30d</td>
+	<td>257d</td>
+
+	<td>
+	    
+	         [empty]
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:red">Martin Cruz Smith</span></b></td>
+	<!-- <td></td> -->
+	<td>30d</td>
+	<td>476d</td>
+
+	<td>
+	    
+	         [empty]
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:green">IQ</span></b></td>
+	<!-- <td></td> -->
+	<td>30d</td>
+	<td>51d</td>
+
+	<td>
+	    
+	    <ol>
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>Hi Five</i></span><br>
+	    Joe Ide</br>
+	    (B07RGJRL2M)
+
+	    
+	    <li> <span style="color:gray"><i>Smoke</i></span><br>
+	    Joe Ide</br>
+	    (B089SPCX8R)
+
+	    
+	    </ol>
+	    
+	</td>
+    </tr>
+
+    <tr>
+	<td><b><span style="color:green">Tom Bouman</span></b></td>
+	<!-- <td></td> -->
+	<td>30d</td>
+	<td>100d</td>
+
+	<td>
+	    
+	    <ol>
+	    
+	    <li> <span style="color:black;font-weight:bolder"><i>The Bramble and the Rose</i></span><br>
+	    Tom Bouman</br>
+	    (B07TK43KX3)
+
+	    
+	    </ol>
+	    
+	</td>
+    </tr>
+
 </table>
+
+<p>
+<div id="piechart_3d" style="width: 900px; height: 500px;margin: auto;"></div>
 </body>
