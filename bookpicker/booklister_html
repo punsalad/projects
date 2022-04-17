@@ -1,40 +1,19 @@
 #!/usr/bin/perl
 #
-# booklister -- show book stacks in HTML (open tab in Chrome)
+# booklister -- output TBR book stacks in HTML
 #
 
 use strict;
 use warnings;
-use Const::Fast;
 use English qw( -no_match_vars );
 use HTML::Template;
-use Text::CSV;
 use Time::Piece;
 use Time::Seconds;
-use version; our $VERSION = qv('v2018.06.25');
+use open qw(:std :utf8);
+use version; our $VERSION = qv('v2022.04.15');
 
-const my $CLIENT               => '/usr/bin/chromix-too';
-const my $SERVER               => '/usr/bin/chromix-too-server';
-const my $SLEEP_WAIT_ON_SERVER => 10;
-
-#
-# run server in background if not running...
-#
-my $status = system "pgrep -f $SERVER";
-if ($status) {
-    #
-    # quick and dirty...
-    #
-    $status = system "$SERVER &";
-    #
-    # things don't happen immediately...
-    #
-    sleep $SLEEP_WAIT_ON_SERVER;
-}
-
-my $now            = localtime;
-my $stackdir       = "$ENV{'HOME'}/var/bookstacks";    # stack directory
-my $stack_csv_file = "$stackdir/stacks.csv";
+my $now       = localtime;
+my $stackfile = "$ENV{'HOME'}/var/bookstacks.pl";
 
 my $template_file = $ENV{'HOME'} . '/Templates/booklister.tmpl';
 my $template      = HTML::Template->new( filename => $template_file, );
@@ -42,101 +21,62 @@ my $template      = HTML::Template->new( filename => $template_file, );
 #
 # read stack data...
 #
-my $stack_csv = Text::CSV->new()
-    or die 'Cannot use CSV: ', Text::CSV->error_diag(), "\n";
-open my $stack_fh, '<', $stack_csv_file
-    or die "Opening $stack_csv_file failed: $ERRNO\n";
-$stack_csv->column_names( $stack_csv->getline($stack_fh) );
-my $stacks = $stack_csv->getline_hr_all($stack_fh);
-close $stack_fh or warn "Closing $stackdir/stacks.csv failed: $ERRNO\n";
-
-#
-# read books in each stack
-#
-my %books_csv_file;
-my %books;
-for my $stack ( @{$stacks} ) {
-    my $stack_id = ${$stack}{id};
-    $books_csv_file{$stack_id} = "$stackdir/$stack_id" . '.csv';
-    my $books_csv = Text::CSV->new()
-        or die 'Cannot use CSV: ', Text::CSV->error_diag(), "\n";
-    open my $books_fh, '<', $books_csv_file{$stack_id}
-        or die "Opening $books_csv_file{$stack_id} failed: $ERRNO\n";
-    $books_csv->column_names(qw(title owned));
-    $books{$stack_id} = $books_csv->getline_hr_all($books_fh);
-    close $books_fh
-        or warn "Closing $books_csv_file{$stack_id} failed: $ERRNO\n";
+our (@STACKS);
+if ( !( my $return = do $stackfile ) ) {
+    die "Couldn't parse $stackfile $EVAL_ERROR\n" if $EVAL_ERROR;
+    die "Couldn't do    $stackfile $ERRNO\n"      if !defined $return;
+    die "Couldn't run   $stackfile\n"             if !$return;
 }
 
 #
-# go through stacks once, calculating weights...
+# populate template
 #
-my %wt;
-my %eligible;
-my %stack_age;
-my $tot_wt = 0;
-for my $i ( 0 .. $#{$stacks} ) {
-    my $stack_id = $stacks->[$i]{id};
+my @stackloop  = ();
+my @weightloop = ();
+
+for my $stack (@STACKS) {
     my $lastpicked_lt
-        = Time::Piece->strptime( $stacks->[$i]{lastpicked}, '%Y-%m-%d' );
-    $stack_age{$stack_id} = $now - $lastpicked_lt;
-    $eligible{$stack_id}
-        = (    $stack_age{$stack_id}->days >= $stacks->[$i]{minage}
-            && scalar @{ $books{$stack_id} } > 0
-            && $books{$stack_id}->[0]{owned} );
-    $wt{$stack_id}
-        = $eligible{$stack_id}
-        ? int( $stack_age{$stack_id}->days * scalar @{ $books{$stack_id} } )
-        : 0;
-    $tot_wt += $wt{$stack_id};
-}
+        = Time::Piece->strptime( $stack->{lastpicked}, '%Y-%m-%d' );
+    my $stack_age = $now - $lastpicked_lt;
+    my $eligible
+        = (    $stack_age->days >= $stack->{minage}
+            && scalar @{ $stack->{books} } > 0
+            && $stack->{books}->[0]{owned} );
+    $eligible && push @weightloop,
+        {
+        ename  => $stack->{name},
+        weight => int( $stack_age->days * scalar @{ $stack->{books} } ),
+        };
 
-#
-# and list everything...
-#
-const my $CENTUM => 100;
-my @stackloop = ();
-
-for my $i ( 0 .. $#{$stacks} ) {
-    my $stack_id  = $stacks->[$i]{id};
     my @titleloop = ();
-    for my $j ( 0 .. $#{ $books{$stack_id} } ) {
+    for my $book ( @{ $stack->{books} } ) {
         push @titleloop,
             {
-            title => $books{$stack_id}->[$j]{title}
-                . (
-                $books{$stack_id}->[$j]{owned} eq 'K' ? ' (Kindle)' : q{} ),
-            owned => $books{$stack_id}->[$j]{owned},
+            title  => $book->{title},
+            author => $book->{author},
+            asin   => $book->{ASIN},
+            owned  => $book->{owned},
             };
     }
 
     push @stackloop,
         {
-        name       => $stacks->[$i]{name},
-        lastpicked => $stacks->[$i]{lastpicked},
-        minage     => $stacks->[$i]{minage},
-        age        => sprintf( '%d', $stack_age{$stack_id}->days ),
-        eligible   => $eligible{$stack_id},
-        wt         => $wt{$stack_id},
-        prob   => sprintf( '%4.1f%%', $CENTUM * $wt{$stack_id} / $tot_wt ),
-        titles => \@titleloop,
+        name     => $stack->{name},
+        minage   => $stack->{minage},
+        age      => sprintf( '%d', $stack_age->days ),
+        eligible => $eligible,
+        titles   => \@titleloop,
         };
 }
-$template->param( 'stacks' => \@stackloop );
+$template->param( 'stacks'  => \@stackloop );
+$template->param( 'weights' => \@weightloop );
 
 #
 # write to tmp
 #
-open my $F, '>', '/tmp/booklist.html'
-    or die "Failed to open /tmp/booklist.html: $ERRNO\n";
+my $htmlfile = '/tmp/booklist_new.html';
+open my $F, '>', $htmlfile
+    or die "Failed to open $htmlfile: $ERRNO\n";
 print {$F} $template->output;
-close $F or warn "Closing /tmp/booklist.html failed: $ERRNO\n";
-
-#
-# and open in Chrome tab
-#
-my $chromix_cmd
-    = sprintf '%s raw chrome.tabs.create \'{"active":true,"url":"%s"}\'',
-    $CLIENT, 'file:///tmp/booklist.html';
-$status = system $chromix_cmd;
-
+close $F or warn "Closing $htmlfile failed: $ERRNO\n";
+print "HTML booklist saved at file://$htmlfile\n";
