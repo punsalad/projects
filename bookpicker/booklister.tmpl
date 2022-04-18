@@ -22,8 +22,8 @@
     background: #cce6ff;
 }
 </style>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script type="text/javascript">
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
   google.charts.load("current", {packages:["corechart"]});
   google.charts.setOnLoadCallback(drawChart);
   function drawChart() {
@@ -71,7 +71,7 @@
 	    <ol>
 	    <TMPL_LOOP NAME="titles">
 	    <li> <span style="<TMPL_IF NAME="owned">color:black;font-weight:bolder<TMPL_ELSE>color:gray</TMPL_IF>"><i><TMPL_VAR NAME="title"></i></span><br>
-	    <TMPL_VAR NAME="author"></br>
+	    <TMPL_VAR NAME="author"><br>
 	    (<TMPL_VAR NAME="asin">)
 
 	    </TMPL_LOOP>
