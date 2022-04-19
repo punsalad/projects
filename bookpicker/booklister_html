@@ -74,7 +74,7 @@ $template->param( 'weights' => \@weightloop );
 #
 # write to tmp
 #
-my $htmlfile = '/tmp/booklist_new.html';
+my $htmlfile = '/tmp/booklist.html';
 open my $F, '>', $htmlfile
     or die "Failed to open $htmlfile: $ERRNO\n";
 print {$F} $template->output;
