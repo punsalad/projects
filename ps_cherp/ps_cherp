@@ -1,0 +1,78 @@
+#!/usr/bin/perl
+#
+# ps_cherp --
+# analyze House election data from MIT's Election Data + Science Lab
+# https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/IG0UN2
+# according to Pun Salad Crackpot Election Reform proposal
+#
+use strict;
+use warnings;
+use Const::Fast;
+use English qw( -no_match_vars );
+use Text::CSV qw(csv);
+use open qw(:std :utf8);
+use version; our $VERSION = qv('v2022.05.02');
+
+const my $CENTUM => 100.0;
+const my $THRESH => 0.01;
+
+my $year = shift @ARGV;
+defined $year or die "Usage: $PROGRAM_NAME year\n";
+
+my $aoh = csv(
+    in      => "$ENV{'HOME'}/Downloads/1976-2020-house.csv",
+    headers => 'auto'
+);
+
+#
+# ignore votes for these "candidates"
+#
+my %ignore_vote_for = map { $_ => 1 } (
+    'UNDERVOTES',            'BLANK VOTE',
+    'BLANK VOTE/SCATTERING', 'BLANK VOTE/VOID VOTE/SCATTERING',
+    'OTHER',                 'WRITEIN'
+);
+
+my %party_votes;
+my %party_count;
+my $total_reps;
+my $total_votes;
+for my $row ( @{$aoh} ) {
+    next if ( $row->{'year'} != $year );
+    next if ( exists $ignore_vote_for{ $row->{candidate} } );
+
+    # In some cases (well, at least one case) unopposed
+    # candidates are recorded with zero votes and zero
+    # total votes, causing a division by zero error.
+    # This ugly calc works around that.
+    my $frac
+        = ( $row->{candidatevotes} == $row->{totalvotes} )
+        ? 1.0
+        : $row->{candidatevotes} / $row->{totalvotes};
+
+    # ignore candidates not meeting our arbitrary threshold ...
+    next if ( $frac < $THRESH );
+
+    # fix for null party in data
+    $row->{party} || ( $row->{party} = 'NO PARTY AFFILIATION' );
+
+    printf "%s district %d; %s (%s) with %5.2f%%\n",
+        $row->{state}, $row->{district}, $row->{candidate}, $row->{party},
+        $CENTUM * $frac;
+
+    $party_votes{ $row->{party} } += $frac;
+    $party_count{ $row->{party} }++;
+    $total_reps++;
+    $total_votes += $frac;
+}
+print "Party results for $year:\n";
+for my $party (
+    reverse sort { $party_votes{$a} <=> $party_votes{$b} }
+    keys %party_count
+    )
+{
+    printf "%-30s: %3d reps with %6.2f votes\n", $party,
+        $party_count{$party}, $party_votes{$party};
+}
+
+printf "\nGRAND TOTAL: %d reps with %0.2f votes\n", $total_reps, $total_votes;
