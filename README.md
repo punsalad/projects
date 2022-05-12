@@ -35,6 +35,10 @@ might be of general interest or use.
    Translate my wife's handwritten grocery shopping list into a printable HTML list organized for
    "efficient" traversal of the store. Yes, really.
 
+- ps_cherp
+
+    A couple scripts to analyze US House election data described [here](https://punsalad.com/cgi-bin/ps?spec=2022/05/11/1652297303)
+
 - reading_sched_gen
 
     A CGI script and associated form to generate a reading page-goal
@@ -45,3 +49,4 @@ might be of general interest or use.
 - ttb
 
     A very small script to output an HTML link to the active tab in Chrome's active window
+

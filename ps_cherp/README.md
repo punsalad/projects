@@ -16,5 +16,5 @@ stringent setting.
 The Python script is an afterthought, just thought I'd see if I could do it. I don't know Python at all, and
 it was (more or less) brute-force translated from Perl, with a lot of Googling. It probably would make an experience Pythoner blanch.
 
-Much more detail is at my blog, Pun Salad, right [here](https://punsalad.com/cgi-bin/ps?spec=2022/05/11/).
+Much more detail is at my blog, Pun Salad, right [here](https://punsalad.com/cgi-bin/ps?spec=2022/05/11/1652297303).
 
