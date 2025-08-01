@@ -1,0 +1,9 @@
+{
+  "name": "com.chrome.api.bridge",
+  "description": "Chrome API Bridge Native Host",
+  "path": "/usr/local/bin/chrome_api_bridge.py",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://lkkfoeencjloppdjnifnlamfeediabfd/"
+  ]
+}
