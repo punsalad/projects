@@ -4,6 +4,6 @@
   "path": "/usr/local/bin/chrome_api_bridge.py",
   "type": "stdio",
   "allowed_origins": [
-    "chrome-extension://lkkfoeencjloppdjnifnlamfeediabfd/"
+    "chrome-extension://EXTENSION_ID_GOES_HERE/"
   ]
 }
