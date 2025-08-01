@@ -30,6 +30,11 @@ might be of general interest or use.
 
     A small script to generate a year's calendar in HTML.
 
+- chrome_api_bridge
+
+    A Google Chrome extension (with helper scripts) to allow access to Chrome's API
+    via Linux shell commands. Written nearly entirely by Claude.
+
 - listmaker
 
    Translate my wife's handwritten grocery shopping list into a printable HTML list organized for

@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Chrome API Bridge",
+  "version": "1.0",
+  "description": "Bridge between command line and Chrome APIs via Native Messaging",
+  
+  "permissions": [
+    "nativeMessaging",
+    "tabs",
+    "bookmarks",
+    "history",
+    "activeTab",
+    "storage"
+  ],
+  
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Chrome API Bridge"
+  }
+}

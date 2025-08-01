@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 300px;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .connected {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .disconnected {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .info {
+      background: #f0f0f0;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h3>Chrome API Bridge</h3>
+  
+  <div id="status" class="status disconnected">
+    Checking connection...
+  </div>
+  
+  <div class="info">
+    <strong>Native Host:</strong> com.chrome.api.bridge<br>
+    <strong>Port:</strong> 7444 (via native host)
+  </div>
+  
+  <button id="testConnection">Test Connection</button>
+  <button id="openTab">Test: Open Tab</button>
+  
+  <div id="output" style="margin-top: 20px; font-size: 12px; color: #666;"></div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
