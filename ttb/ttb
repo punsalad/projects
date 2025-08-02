@@ -6,52 +6,65 @@
 use strict;
 use warnings;
 use Const::Fast;
-use Encode qw(encode_utf8);
+use Encode  qw(encode_utf8);
 use English qw( -no_match_vars );
 use JSON;
 use open qw(:std :utf8);
+use URI::Query;
+use URI::Split qw(uri_split uri_join);
 use utf8;
-use version; our $VERSION = qv('v2021.04.06');
+use version; our $VERSION = qv('v2025.07.14');
 
-const my $CLIENT => '/usr/local/bin/chromix-too';
+const my $CURL_CMD => q{curl -s http://localhost:7444/chrome/tabs/getCurrent};
 
 #
-# assume Chromix server is running; get active tab in current window
+# get active tab in current window
 #
-open my $CTQ, q{-|},
-    $CLIENT
-    . q{ raw chrome.tabs.query '{ "active":true, "currentWindow":true }'}
-    or die "Failed to run tab query: $ERRNO\n";
+open my $CTQ, q{-|}, $CURL_CMD or die "Failed to run tab query: $ERRNO\n";
 my $ctq_json = <$CTQ>;
 close $CTQ or warn "Closing tab query failed: $ERRNO\n";
-my $tab_aref = decode_json(encode_utf8($ctq_json));
+my $tab_aref = decode_json( encode_utf8($ctq_json) );
 
 #
 # the query should only give us one tab, so pop it;
 #
-my $tab = pop @{$tab_aref};
+my $tab = pop @{ $tab_aref->{'result'} };
+
+#
+# remove utm_* and itm-* query parameters from URL
+#
+my ( $scheme, $auth, $path, $query, $frag ) = uri_split( $tab->{url} );
+if ( defined $query ) {
+    my $qq = URI::Query->new($query);
+    $qq->strip_like(qr/^[iu]tm/);
+    $query = $qq->stringify();
+    if ( $query eq q{} ) {
+        $query = undef;
+    }
+    $tab->{url} = uri_join( $scheme, $auth, $path, $query, $frag );
+}
 
 #
 # for target text, first get any input (trim trailing/leading whitespace)
 #
-my $t
-    = do { local $RS = undef; <STDIN> };  ## no critic 'ProhibitExplicitStdin'
+my $t = do { local $RS = undef; <STDIN> };    ## no critic 'ProhibitExplicitStdin'
 $t =~ s/^ \s+ | \s+ $//gx;
 
 #
-# if no input ...
+# if no input use page title
 #
 if ( !$t ) {
-    #
-    # use page title
-    #
     $t = $tab->{title};
     #
     # chop off (probable) site identity at title end...
     #
     $t =~ s{\s+  (
 			[\N{RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK}
+			\N{SINGLE RIGHT-POINTING ANGLE QUOTATION MARK}
 			\N{LEFT-POINTING DOUBLE ANGLE QUOTATION MARK}
+			\N{STAR OPERATOR}
+			\N{MIDDLE DOT}
+			\N{BULLET}
 			\N{VERTICAL LINE}
 			\N{HYPHEN-MINUS}
 			\N{EN DASH}
@@ -61,4 +74,37 @@ if ( !$t ) {
 		) \s+ .* $}{}x;
 }
 
-printf "<a href=\"%s\">%s</a>\n", $tab->{url}, $t;
+#
+# very special hack for our Blogger sites...
+#
+$t
+    =~ s/^ (Greg \s Mankiw's \s Blog | Althouse | GeekPress | Clayton \s Cramer[.]) : \s+//x;
+
+#
+# another very special hack for Creators Syndicate columns...
+#
+$t =~ s/, \s by \s .+//x;
+
+#
+# for Arnold Kling
+#
+$t =~ s/, \s+ \d{1,2} \/ \d{1,2} $ //x;
+
+#
+# and for Michael Ramirez
+#
+$t =~ s/^Michael \s+ Ramirez: \s+ (.+) \s \d{2}-\d{2}-\d{2}$/$1/x;
+
+#
+# and for twitter.com
+#
+if ( $auth =~ /^ (twitter|x) [.] com/x ) {
+    $t = 'tweet';
+}
+
+#
+# finally, output the link
+#
+# printf '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
+printf '<a href="%s">%s</a>', $tab->{url}, $t;
+print "\n";
