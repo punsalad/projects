@@ -234,11 +234,13 @@ def main():
     
     # Start HTTP server
     handler_class = create_handler(native_messaging)
-    httpd = HTTPServer(('localhost', 7444), handler_class)
-    
+    try:
+        httpd = HTTPServer(('localhost', 7444), handler_class)
+    except OSError as e:
+        logging.error(f"Could not bind port 7444 (already in use?): {e}")
+        sys.exit(1)
+
     logging.info("HTTP server listening on port 7444")
-    logging.info("Ready to receive Chrome API commands")
-    
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

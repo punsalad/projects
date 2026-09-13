@@ -10,7 +10,8 @@
     "bookmarks",
     "history",
     "activeTab",
-    "storage"
+    "storage",
+    "alarms"
   ],
   
   "host_permissions": [

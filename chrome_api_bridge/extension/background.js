@@ -1,24 +1,45 @@
 // background.js
 let nativePort = null;
+let connecting = false;
+
 
 // Connect to native messaging host
 function connectToNativeHost() {
-  nativePort = chrome.runtime.connectNative('com.chrome.api.bridge');
+  if (nativePort || connecting) {
+    console.log('Already connected (or connecting) — skipping');
+    return;
+  }
+  connecting = true;
+
+  try {
+      nativePort = chrome.runtime.connectNative('com.chrome.api.bridge');
+  } catch (e) {
+      console.error('connectNative failed:', e);
+      connecting = false;
+      return;
+  }
   
   nativePort.onMessage.addListener((message) => {
-    console.log('Received message from native host:', message);
     handleNativeMessage(message);
   });
   
   nativePort.onDisconnect.addListener(() => {
-    console.log('Native host disconnected');
+    console.log('Native host disconnected:', chrome.runtime.lastError?.message);
     nativePort = null;
-    // Attempt to reconnect after 5 seconds
-    setTimeout(connectToNativeHost, 5000);
+    connecting = false;
+    // Use an alarm, not setTimeout — timers don't survive service worker teardown
+    chrome.alarms.create('reconnect-native-host', { delayInMinutes: 0.1 });
   });
   
+  connecting = false;
   console.log('Connected to native messaging host');
 }
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'reconnect-native-host') {
+      connectToNativeHost();
+  }
+});
 
 // Handle messages from native host
 async function handleNativeMessage(message) {
@@ -112,7 +133,6 @@ async function executeCommand(message) {
   }
 }
 
-// Initialize connection on startup
 chrome.runtime.onStartup.addListener(() => {
   connectToNativeHost();
 });
@@ -120,6 +140,4 @@ chrome.runtime.onStartup.addListener(() => {
 chrome.runtime.onInstalled.addListener(() => {
   connectToNativeHost();
 });
-
-// Connect immediately if service worker is active
 connectToNativeHost();
